@@ -20,12 +20,13 @@ public class PlayerController : MonoBehaviour
     private Vector2 moveDirection;
     private BoxCollider2D playerCollider;
 
-    public bool isDashing = false;
-    public bool canDash = true;
+    private bool isDashing = false;
+    private bool canDash = true;
+
     public bool isInvincible = false;
 
-    public bool canAttack = true;
-    public bool isAttacking = false;
+    private bool canAttack = true;
+    private bool isAttacking = false;
 
     void Start()
     {
@@ -40,13 +41,21 @@ public class PlayerController : MonoBehaviour
         float y = 0f;
 
         if (Keyboard.current.wKey.isPressed)
+        {
             y = 1f;
+        }
         if (Keyboard.current.sKey.isPressed)
+        { 
             y = -1f;
+        }
         if (Keyboard.current.aKey.isPressed)
+        {
             x = -1f;
+        }
         if (Keyboard.current.dKey.isPressed)
+        {
             x = 1f;
+        }
 
 
         moveDirection = new Vector2(x, y);
@@ -72,9 +81,9 @@ public class PlayerController : MonoBehaviour
         playerCollider.isTrigger = true;
 
         rb.linearVelocity = (moveDirection * dashSpeed);
-
+        
         yield return new WaitForSeconds(dashDuration);
-
+        
         rb.linearVelocity = Vector2.zero;
 
         playerCollider.isTrigger = false;
@@ -84,6 +93,7 @@ public class PlayerController : MonoBehaviour
         isInvincible = false;
 
         yield return new WaitForSeconds(dashCoolDown - dashDuration);
+
         canDash = true;
     }
 
@@ -96,6 +106,7 @@ public class PlayerController : MonoBehaviour
         attackHitbox.transform.right = moveDirection;
 
         attackHitbox.SetActive(true);
+
         yield return new WaitForSeconds(attackActivetime);
 
         attackHitbox.SetActive(false);
@@ -111,7 +122,9 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         if (isDashing)
+        {
             return;
+        }
         rb.MovePosition(rb.position + moveDirection * moveSpeed * Time.deltaTime);
 
     }
