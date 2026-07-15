@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody2D rb;
     private Vector2 moveDirection;
+    private Vector2 lastLookDirection = Vector2.right;
     private BoxCollider2D playerCollider;
 
     private bool isDashing = false;
@@ -58,7 +59,12 @@ public class PlayerController : MonoBehaviour
         }
 
 
-        moveDirection = new Vector2(x, y);
+        moveDirection = new Vector2(x, y).normalized;
+
+        if (moveDirection != Vector2.zero)
+        {
+            lastLookDirection = moveDirection.normalized;
+        }
 
         if (Mouse.current.rightButton.wasPressedThisFrame && canDash && !isDashing)
         {
@@ -102,8 +108,6 @@ public class PlayerController : MonoBehaviour
     {
         canAttack = false;
         isAttacking = true;
-
-        attackHitbox.transform.right = moveDirection;
 
         attackHitbox.SetActive(true);
 

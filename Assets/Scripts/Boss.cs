@@ -16,16 +16,33 @@ public class Boss : MonoBehaviour
     [SerializeField] float patternDelay = 1f;
     [SerializeField] GameObject attackHitbox;
     [SerializeField] GameObject dashHitbox;
+    [SerializeField] GameObject spinHitbox;
+    [SerializeField] GameObject jumpHitbox;
+    [SerializeField] GameObject jumpWarningCircle;
 
     [SerializeField] float moveSpeed = 3f;
 
     [SerializeField] float basicAttackWaitTime = 1f;
     [SerializeField] float basicAttackActiveTime = 1f;
-    [SerializeField] float attackDistance = 1f;
+    [SerializeField] float attackRange = 1f;
 
     [SerializeField] float dashAttackWaitTime = 1f;
+    [SerializeField] float dashReadyTime = 1f;
     [SerializeField] float dashOvershoot = 2f;
     [SerializeField] float dashMoveTime = 0.08f;
+
+    [SerializeField] float spinWaitTime = 1f;
+    [SerializeField] float spinActiveTime = 1f;
+    [SerializeField] float spinRange = 10f;
+
+
+    [SerializeField] float jumpReadyTime = 1f;
+    [SerializeField] float jumpUpTime = 0.5f;
+    [SerializeField] float jumpActiveTime = 0.5f;
+    [SerializeField] float jumpRadius = 2f;
+    [SerializeField] float jumpWarningTime = 1f;
+
+
 
 
     private Transform player;
@@ -45,6 +62,9 @@ public class Boss : MonoBehaviour
 
         attackHitbox.SetActive(false);
         dashHitbox.SetActive(false);
+        spinHitbox.SetActive(false);
+        jumpHitbox.SetActive(false);
+        jumpWarningCircle.SetActive(false);
 
         StartCoroutine(PatternLoop());
 
@@ -64,19 +84,27 @@ public class Boss : MonoBehaviour
                 yield return StartCoroutine(BasicAttack());
 
             }
-            else
+            else if (patternNumber == 1)
             {
                 yield return StartCoroutine(DashAttack());
             }
+            else if (patternNumber == 2)
+            {
+                yield return StartCoroutine(SpinAttack());
+            }
+            else
+            {
+                yield return StartCoroutine(JumpAttack());
+            }
 
-            patternNumber = (patternNumber + 1) % 2;
+            patternNumber = (patternNumber + 1) % 4;
         }
     }
 
 
     IEnumerator BasicAttack() //Boss's basic attack coroutine
     {
-        while (Vector2.Distance(transform.position, player.position) > (attackDistance))
+        while (Vector2.Distance(transform.position, player.position) > (attackRange))
         {
             Vector2 moveDir = (player.position - transform.position).normalized;
 
@@ -91,7 +119,7 @@ public class Boss : MonoBehaviour
 
         transform.right = dir;
 
-        attackHitbox.transform.position = (Vector2)transform.position + (dir * attackDistance);
+        attackHitbox.transform.position = (Vector2)transform.position + (dir * attackRange);
 
         attackHitbox.transform.right = dir;
 
@@ -106,47 +134,137 @@ public class Boss : MonoBehaviour
     }
 
 
-    IEnumerator DashAttack()
+    IEnumerator DashAttack() //boss's dash attack coroutine.
     {
+        Debug.Log("보스 돌진 공격 예고");
+
         Vector2 dashDir = (player.position - transform.position).normalized;
+
         transform.right = dashDir;
 
         yield return new WaitForSeconds(dashAttackWaitTime);
 
+        dashDir = (player.position - transform.position).normalized;
+
+        transform.right = dashDir;
+
+        yield return new WaitForSeconds(dashReadyTime); 
+
         Debug.Log("보스 돌진 공격");
 
         Vector2 startDash = transform.position;
+
         Vector2 endDash = (Vector2)player.position + dashDir * dashOvershoot;
-        Vector2 midDash = (startDash + endDash) / 2f;
-        float totalDist = Vector2.Distance(startDash, endDash);
 
-        Vector2 dir = (endDash - startDash).normalized;
+        dashHitbox.transform.localScale = Vector3.one; 
 
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        dashHitbox.transform.position = transform.position;
 
-        dashHitbox.transform.rotation = Quaternion.Euler(0, 0, angle);
-
-        dashHitbox.transform.position = midDash;
-        dashHitbox.transform.localScale = new Vector3(totalDist, 1f, 1f);
         dashHitbox.SetActive(true);
 
-        Physics2D.IgnoreCollision(bossBodyCollider, playerBodyCollider, true); 
+        Physics2D.IgnoreCollision(bossBodyCollider, playerBodyCollider, true);
 
         float elapsed = 0f;
+
         while (elapsed < dashMoveTime)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / dashMoveTime;
-            rb.MovePosition(Vector2.Lerp(startDash, endDash, t));
+            Vector2 nextPos = Vector2.Lerp(startDash, endDash, t);
+            rb.MovePosition(nextPos);
+            dashHitbox.transform.position = nextPos; // 보스랑 같이 이동
             yield return null;
         }
+
         rb.MovePosition(endDash);
 
-        Physics2D.IgnoreCollision(bossBodyCollider, playerBodyCollider, false); 
+        dashHitbox.transform.position = endDash;
+
+        Physics2D.IgnoreCollision(bossBodyCollider, playerBodyCollider, false);
 
         dashHitbox.SetActive(false);
     }
 
+
+
+    IEnumerator SpinAttack() // boss's spin attack coroutine.
+    {
+        Debug.Log("보스 회전 베기 예고");
+
+
+        yield return new WaitForSeconds(spinWaitTime);
+
+        spinHitbox.transform.position = transform.position;
+
+        spinHitbox.transform.localScale = new Vector3(spinRange * 2f, spinRange * 2f, 1f);
+
+        spinHitbox.SetActive(true);
+
+        Debug.Log("보스 회전 베기");
+
+        yield return new WaitForSeconds(spinActiveTime);
+
+        spinHitbox.SetActive(false);
+
+
+
+
+    }
+
+
+
+
+    IEnumerator JumpAttack() //boss's jump attack coroutine
+    {
+        Debug.Log("보스 점프 준비");
+
+        yield return new WaitForSeconds(jumpReadyTime);
+
+        Vector2 startJump = transform.position;
+
+        Vector2 endJump = player.position;
+
+
+
+        jumpWarningCircle.transform.position = endJump;
+
+        jumpWarningCircle.transform.localScale = new Vector3(jumpRadius * 2f, jumpRadius * 2f, 1f);
+
+        jumpWarningCircle.SetActive(true);
+
+        yield return new WaitForSeconds(jumpWarningTime);
+
+        jumpWarningCircle.SetActive(false);
+
+        float elasped = 0f;
+
+        while (elasped < jumpUpTime)
+        {
+            elasped = elasped + Time.deltaTime;
+            float t = elasped / jumpUpTime;
+            rb.MovePosition(Vector2.Lerp(startJump, endJump, t));
+            yield return null;
+        }
+
+        rb.MovePosition(endJump);
+
+
+
+
+        Debug.Log("보스 착지 공격");
+
+        jumpHitbox.transform.position = endJump;
+
+        jumpHitbox.transform.localScale = new Vector3(jumpRadius * 2f, jumpRadius * 2f, 1f);
+
+        jumpHitbox.SetActive(true);
+
+        yield return new WaitForSeconds(jumpActiveTime);
+
+        jumpHitbox.SetActive(false);
+
+
+    }
 
 
     public void TakeDamage(float damage)
@@ -165,9 +283,13 @@ public class Boss : MonoBehaviour
     private void Die()
     {
         currentState = State.Dead;
+
         Debug.Log("보스 토벌");
+
         StopAllCoroutines();
+
         attackHitbox.SetActive(false);
+
         gameObject.SetActive(false);
 
     }
