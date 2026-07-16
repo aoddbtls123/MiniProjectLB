@@ -314,10 +314,13 @@ MonoBehaviour:
   basicAttackWaitTime: 1
   basicAttackActiveTime: 0.2
   attackRange: 3
-  dashAttackWaitTime: 1.5
-  dashReadyTime: 0.2
+  dashHitboxScale: {x: 1.5, y: 1.5}
+  dashAttackWaitTime: 1
+  dashReadyTime: 0.5
   dashOvershoot: 3
   dashMoveTime: 0.08
+  phase2DashCount: 3
+  dashChainDelay: 0.3
   spinWaitTime: 1
   spinActiveTime: 0.3
   spinRange: 5

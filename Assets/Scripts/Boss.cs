@@ -28,10 +28,16 @@ public class Boss : MonoBehaviour
     [SerializeField] float basicAttackActiveTime = 1f;
     [SerializeField] float attackRange = 1f;
 
+    [SerializeField] Vector2 dashHitboxScale = new Vector2(2f, 2f);
+
     [SerializeField] float dashAttackWaitTime = 1f;
     [SerializeField] float dashReadyTime = 1f;
     [SerializeField] float dashOvershoot = 2f;
     [SerializeField] float dashMoveTime = 0.08f;
+  
+
+    [SerializeField] float phase2DashCount = 3;
+    [SerializeField] float dashChainDelay = 0.3f;
 
     [SerializeField] float spinWaitTime = 1f;
     [SerializeField] float spinActiveTime = 1f;
@@ -49,11 +55,14 @@ public class Boss : MonoBehaviour
 
     private Transform player;
     private Rigidbody2D rb;
+
     private int patternNumber = 0;
     private int currentPhase = 1;
-    private bool isInvincible = false;
-    private Coroutine patternLoopRoutine;
 
+    private bool isInvincible = false;
+
+    private Coroutine patternLoopRoutine;
+      
 
 
 
@@ -100,12 +109,16 @@ public class Boss : MonoBehaviour
             {
                 yield return StartCoroutine(SpinAttack());
             }
-            else
+            else if (patternNumber == 3)
             {
                 yield return StartCoroutine(JumpAttack());
             }
+            else
+            {
+                yield return StartCoroutine(MultiDashAttack());
+            }
 
-            patternNumber = (patternNumber + 1) % 4;
+                patternNumber = (patternNumber + 1) % 5;
         }
     }
 
@@ -164,7 +177,7 @@ public class Boss : MonoBehaviour
 
         Vector2 endDash = (Vector2)player.position + dashDir * dashOvershoot;
 
-        dashHitbox.transform.localScale = Vector3.one; 
+        dashHitbox.transform.localScale = new Vector3(dashHitboxScale.x, dashHitboxScale.y, 1f); 
 
         dashHitbox.transform.position = transform.position;
 
@@ -180,7 +193,7 @@ public class Boss : MonoBehaviour
             float t = elapsed / dashMoveTime;
             Vector2 nextPos = Vector2.Lerp(startDash, endDash, t);
             rb.MovePosition(nextPos);
-            dashHitbox.transform.position = nextPos; // 보스랑 같이 이동
+            dashHitbox.transform.position = nextPos; 
             yield return null;
         }
 
@@ -200,7 +213,51 @@ public class Boss : MonoBehaviour
 
         transform.right = dashDir;
 
-        yield return new WaitForSeconds()
+        yield return new WaitForSeconds(dashAttackWaitTime);
+
+        for (int i = 0; i< phase2DashCount; i++)
+
+        {
+            dashDir = (player.position - transform.position).normalized;
+
+            transform.right = dashDir;
+
+            yield return new WaitForSeconds(dashAttackWaitTime);
+
+            Vector2 startDash = transform.position;
+
+            Vector2 endDash = (Vector2)player.position + dashDir * dashOvershoot;
+
+            dashHitbox.transform.localScale = new Vector3(dashHitboxScale.x, dashHitboxScale.y, 1f);
+
+            dashHitbox.transform.position = transform.position;
+
+            dashHitbox.SetActive(true);
+
+            Physics2D.IgnoreCollision(bossBodyCollider, playerBodyCollider, true);
+
+            float elapsed = 0f;
+
+            while (elapsed < dashMoveTime)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / dashMoveTime;
+                Vector2 nextPos = Vector2.Lerp(startDash, endDash, t);
+                rb.MovePosition(nextPos);
+                dashHitbox.transform.position = nextPos; 
+                yield return null;
+            }
+
+            rb.MovePosition(endDash);
+
+            dashHitbox.transform.position = endDash;
+
+            Physics2D.IgnoreCollision(bossBodyCollider, playerBodyCollider, false);
+
+            dashHitbox.SetActive(false);
+
+            yield return new WaitForSeconds(dashChainDelay);
+        }
 
     }
 
@@ -328,18 +385,18 @@ public class Boss : MonoBehaviour
         }
 
         currentHp = currentHp - damage;
-        Debug.Log("보스 HP: " +currentHp+"/"+maxHp);
+        Debug.Log("보스 HP: " + currentHp + "/" + maxHp);
 
         if (currentHp <= 0)
         {
             Die();
+            return;
         }
 
-        if (currentPhase == 1 && currentHp <= maxHp *0.5f)
+        if (currentPhase == 1 && currentHp <= maxHp * 0.5f)
         {
             StartCoroutine(PhaseTransRoutine());
         }
-
     }
 
     private void Die()
