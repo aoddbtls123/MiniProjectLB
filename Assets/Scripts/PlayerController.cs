@@ -64,6 +64,7 @@ public class PlayerController : MonoBehaviour
         if (moveDirection != Vector2.zero)
         {
             lastLookDirection = moveDirection.normalized;
+            transform.up = lastLookDirection;
         }
 
         if (Mouse.current.rightButton.wasPressedThisFrame && canDash && !isDashing)

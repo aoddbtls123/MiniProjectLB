@@ -10,8 +10,10 @@ public class Boss : MonoBehaviour
     [SerializeField] float maxHp = 100f;
     private float currentHp;
 
-    public enum State {Idle, Pattern, Dead}
+    public enum State {Idle, Pattern, PhaseTrans, Dead}
     public State currentState = State.Idle;
+
+    [SerializeField] float phaseTransTime = 5f;
 
     [SerializeField] float patternDelay = 1f;
     [SerializeField] GameObject attackHitbox;
@@ -48,6 +50,10 @@ public class Boss : MonoBehaviour
     private Transform player;
     private Rigidbody2D rb;
     private int patternNumber = 0;
+    private int currentPhase = 1;
+    private bool isInvincible = false;
+    private Coroutine patternLoopRoutine;
+
 
 
 
@@ -66,7 +72,9 @@ public class Boss : MonoBehaviour
         jumpHitbox.SetActive(false);
         jumpWarningCircle.SetActive(false);
 
-        StartCoroutine(PatternLoop());
+        patternLoopRoutine = StartCoroutine(PatternLoop());
+
+
 
     }
 
@@ -186,6 +194,17 @@ public class Boss : MonoBehaviour
     }
 
 
+    IEnumerator MultiDashAttack() // boss's phase 2 pattern 1 coroutine
+    {
+        Vector2 dashDir = (player.position - transform.position).normalized;
+
+        transform.right = dashDir;
+
+        yield return new WaitForSeconds()
+
+    }
+
+
 
     IEnumerator SpinAttack() // boss's spin attack coroutine.
     {
@@ -267,8 +286,47 @@ public class Boss : MonoBehaviour
     }
 
 
+    IEnumerator PhaseTransRoutine()
+    {
+        currentState = State.PhaseTrans;
+        isInvincible = true;
+
+        if (patternLoopRoutine != null)
+        {
+            StopCoroutine(patternLoopRoutine);
+        }
+
+        attackHitbox.SetActive(false);
+        dashHitbox.SetActive(false);
+        spinHitbox.SetActive(false);
+        jumpHitbox.SetActive(false);
+        jumpWarningCircle.SetActive(false);
+
+        Debug.Log("보스 2페이즈 전환 시작");
+
+        yield return new WaitForSeconds(phaseTransTime);
+
+        currentPhase = 2;
+
+        isInvincible = false;
+
+        currentState = State.Idle;
+
+        Debug.Log("보스 2페이즈 전환");
+
+        patternLoopRoutine = StartCoroutine(PatternLoop());
+
+    }
+
+
     public void TakeDamage(float damage)
     {
+
+        if (isInvincible)
+        {
+            return;
+        }
+
         currentHp = currentHp - damage;
         Debug.Log("보스 HP: " +currentHp+"/"+maxHp);
 
@@ -277,6 +335,10 @@ public class Boss : MonoBehaviour
             Die();
         }
 
+        if (currentPhase == 1 && currentHp <= maxHp *0.5f)
+        {
+            StartCoroutine(PhaseTransRoutine());
+        }
 
     }
 
