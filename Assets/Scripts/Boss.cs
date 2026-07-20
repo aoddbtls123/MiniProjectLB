@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections;
-using UnityEngine.UIElements;
+
 
 public class Boss : MonoBehaviour
 {
@@ -384,6 +384,18 @@ public class Boss : MonoBehaviour
     }
 
 
+    IEnumerator DeathCoroutine()
+    {
+
+        yield return new WaitForSeconds(1.5f);
+
+        gameObject.SetActive(false);
+
+        GameManager.In
+
+    }
+
+
     public void TakeDamage(float damage)
     {
 
@@ -420,5 +432,7 @@ public class Boss : MonoBehaviour
         gameObject.SetActive(false);
 
     }
+
+
 
 }
