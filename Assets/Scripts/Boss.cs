@@ -7,58 +7,35 @@ public class Boss : MonoBehaviour
 
     [SerializeField] Collider2D bossBodyCollider;
     [SerializeField] Collider2D playerBodyCollider;
+    [SerializeField] BossData bossData;
 
-    [SerializeField] float maxHp = 100f;
-    private float currentHp;
 
-    public enum State {Idle, Pattern, PhaseTrans, Dead}
-    public State currentState = State.Idle;
-
-    [SerializeField] float phaseTransTime = 5f;
-    [SerializeField] float phase2SpeedMultiplier = 0.8f;
-
-    [SerializeField] float patternDelay = 1f;
     [SerializeField] GameObject attackHitbox;
     [SerializeField] GameObject dashHitbox;
     [SerializeField] GameObject spinHitbox;
     [SerializeField] GameObject jumpHitbox;
     [SerializeField] GameObject jumpWarningCircle;
 
-    [SerializeField] float moveSpeed = 3f;
 
-    [SerializeField] float basicAttackWaitTime = 1f;
-    [SerializeField] float basicAttackActiveTime = 1f;
-    [SerializeField] float attackRange = 1f;
+    float farDistancePoint = 5f;
 
-    [SerializeField] Vector2 dashHitboxScale = new Vector2(2f, 2f);
+    float jumpFarPoints = 5f;
+    float dashFarPoints = 2f;
+    float basicFarPoints = 3f;
 
-    [SerializeField] float dashAttackWaitTime = 1f;
-    [SerializeField] float dashReadyTime = 1f;
-    [SerializeField] float dashOvershoot = 2f;
-    [SerializeField] float dashMoveTime = 0.08f;
-  
+    float basicClosePoints = 5f;
+    float spinClosePoints = 5f;
 
-    [SerializeField] float phase2DashCount = 3;
-    [SerializeField] float dashChainDelay = 0.3f;
-
-    [SerializeField] float spinWaitTime = 1f;
-    [SerializeField] float spinActiveTime = 1f;
-    [SerializeField] float spinRange = 10f;
+    
 
 
-    [SerializeField] float jumpReadyTime = 1f;
-    [SerializeField] float jumpUpTime = 0.5f;
-    [SerializeField] float jumpActiveTime = 0.5f;
-    [SerializeField] float jumpRadius = 2f;
-    [SerializeField] float jumpWarningTime = 1f;
+    public enum PatternType { Basic, Dash, Spin, Jump, MultiDash}
 
-
-
+    private float currentHp;
 
     private Transform player;
     private Rigidbody2D rb;
 
-    private int patternNumber = 0;
     private int currentPhase = 1;
 
     private bool isInvincible = false;
@@ -67,19 +44,70 @@ public class Boss : MonoBehaviour
 
     private float GetDelay(float baseDelay)
     {
-        return currentPhase == 2 ? baseDelay * phase2SpeedMultiplier : baseDelay;
+        return currentPhase == 2 ? baseDelay * bossData.phase2SpeedMultiplier : baseDelay;
     }
 
       
+    private PatternType NextPatternChoose()
+    {
+        float distance =Vector2.Distance(transform.position, player.position);
+
+        bool isFar = distance > farDistancePoint;
+
+        if(isFar)
+        {
+            PatternType dashOrMulti = currentPhase == 2 ? PatternType.MultiDash : PatternType.Dash;
+
+            PatternType[] patterns = { PatternType.Jump, dashOrMulti, PatternType.Basic };
+
+            float[] weights = { jumpFarPoints, dashFarPoints, basicClosePoints };
+
+            return PointsPick(patterns, weights);
+
+        }
+        else
+        {
+            PatternType[] patterns = { PatternType.Basic, PatternType.Spin };
+            float[] weights = { basicClosePoints, spinClosePoints };
+
+            return PointsPick(patterns,weights);
+        }
+    }
 
 
+    private PatternType PointsPick(PatternType[] patterns, float[] weights)
+    {
+        float total = 0f;
+        foreach (float w in weights)
+        {
+            total = total + w;
+        }
 
+        float rand = Random.Range(0f, total);
+        float sum = 0f;
+
+        for (int i = 0; i < patterns.Length; i++)
+        {
+            sum = sum+ weights[i];
+
+            if (rand <= sum)
+            {
+                return patterns[i];
+            }
+
+        }
+
+
+        return patterns[patterns.Length - 1];
+    }
+
+        
 
 
 
     void Start()
     {
-        currentHp = maxHp;
+        currentHp = bossData.maxHp;
         rb = GetComponent<Rigidbody2D>();
         player = GameObject.FindGameObjectWithTag("Player").transform;
 
@@ -100,7 +128,7 @@ public class Boss : MonoBehaviour
         while (currentState != State.Dead)
         {
             currentState = State.Idle;
-            yield return new WaitForSeconds(GetDelay(patternDelay));
+            yield return new WaitForSeconds(GetDelay(bossData.patternDelay));
 
 
             currentState = State.Pattern;
@@ -133,22 +161,22 @@ public class Boss : MonoBehaviour
 
     IEnumerator BasicAttack() //Boss's basic attack coroutine
     {
-        while (Vector2.Distance(transform.position, player.position) > (attackRange))
+        while (Vector2.Distance(transform.position, player.position) > (bossData.attackRange))
         {
             Vector2 moveDir = (player.position - transform.position).normalized;
 
-            rb.MovePosition(rb.position + moveDir* moveSpeed*Time.deltaTime);
+            rb.MovePosition(rb.position + moveDir* bossData.moveSpeed*Time.deltaTime);
 
             yield return null;
         }
 
-        yield return new WaitForSeconds(GetDelay(basicAttackWaitTime));
+        yield return new WaitForSeconds(GetDelay(bossData.basicAttackWaitTime));
 
         Vector2 dir = (player.position - transform.position).normalized;
 
         transform.right = dir;
 
-        attackHitbox.transform.position = (Vector2)transform.position + (dir * attackRange);
+        attackHitbox.transform.position = (Vector2)transform.position + (dir * bossData.attackRange);
 
         attackHitbox.transform.right = dir;
 
@@ -156,7 +184,7 @@ public class Boss : MonoBehaviour
         
         attackHitbox.SetActive(true);
 
-        yield return new WaitForSeconds(GetDelay(basicAttackActiveTime));
+        yield return new WaitForSeconds(GetDelay(bossData.basicAttackActiveTime));
 
         attackHitbox.SetActive(false);
 
@@ -171,21 +199,21 @@ public class Boss : MonoBehaviour
 
         transform.right = dashDir;
 
-        yield return new WaitForSeconds(GetDelay(dashAttackWaitTime));
+        yield return new WaitForSeconds(GetDelay(bossData.dashAttackWaitTime));
 
         dashDir = (player.position - transform.position).normalized;
 
         transform.right = dashDir;
 
-        yield return new WaitForSeconds(GetDelay(dashReadyTime)); 
+        yield return new WaitForSeconds(GetDelay(bossData.dashReadyTime)); 
 
         Debug.Log("보스 돌진 공격");
 
         Vector2 startDash = transform.position;
 
-        Vector2 endDash = (Vector2)player.position + dashDir * dashOvershoot;
+        Vector2 endDash = (Vector2)player.position + dashDir * bossData.dashOvershoot;
 
-        dashHitbox.transform.localScale = new Vector3(dashHitboxScale.x, dashHitboxScale.y, 1f); 
+        dashHitbox.transform.localScale = new Vector3(bossData.dashHitboxScale.x, bossData.dashHitboxScale.y, 1f); 
 
         dashHitbox.transform.position = transform.position;
 
@@ -195,10 +223,10 @@ public class Boss : MonoBehaviour
 
         float elapsed = 0f;
 
-        while (elapsed < dashMoveTime)
+        while (elapsed < bossData.dashMoveTime)
         {
             elapsed += Time.deltaTime;
-            float t = elapsed / dashMoveTime;
+            float t = elapsed / bossData.dashMoveTime;
             Vector2 nextPos = Vector2.Lerp(startDash, endDash, t);
             rb.MovePosition(nextPos);
             dashHitbox.transform.position = nextPos; 
@@ -221,22 +249,22 @@ public class Boss : MonoBehaviour
 
         transform.right = dashDir;
 
-        yield return new WaitForSeconds(GetDelay(dashAttackWaitTime));
+        yield return new WaitForSeconds(GetDelay(bossData.dashAttackWaitTime));
 
-        for (int i = 0; i< phase2DashCount; i++)
+        for (int i = 0; i< bossData.phase2DashCount; i++)
 
         {
             dashDir = (player.position - transform.position).normalized;
 
             transform.right = dashDir;
 
-            yield return new WaitForSeconds(GetDelay(dashAttackWaitTime));
+            yield return new WaitForSeconds(GetDelay(bossData.dashAttackWaitTime));
 
             Vector2 startDash = transform.position;
 
-            Vector2 endDash = (Vector2)player.position + dashDir * dashOvershoot;
+            Vector2 endDash = (Vector2)player.position + dashDir * bossData.dashOvershoot;
 
-            dashHitbox.transform.localScale = new Vector3(dashHitboxScale.x, dashHitboxScale.y, 1f);
+            dashHitbox.transform.localScale = new Vector3(bossData.dashHitboxScale.x, bossData.dashHitboxScale.y, 1f);
 
             dashHitbox.transform.position = transform.position;
 
@@ -246,10 +274,10 @@ public class Boss : MonoBehaviour
 
             float elapsed = 0f;
 
-            while (elapsed < dashMoveTime)
+            while (elapsed < bossData.dashMoveTime)
             {
                 elapsed += Time.deltaTime;
-                float t = elapsed / dashMoveTime;
+                float t = elapsed / bossData.dashMoveTime;
                 Vector2 nextPos = Vector2.Lerp(startDash, endDash, t);
                 rb.MovePosition(nextPos);
                 dashHitbox.transform.position = nextPos; 
@@ -264,7 +292,7 @@ public class Boss : MonoBehaviour
 
             dashHitbox.SetActive(false);
 
-            yield return new WaitForSeconds(GetDelay(dashChainDelay));
+            yield return new WaitForSeconds(GetDelay(bossData.dashChainDelay));
         }
 
     }
@@ -276,17 +304,17 @@ public class Boss : MonoBehaviour
         Debug.Log("보스 회전 베기 예고");
 
 
-        yield return new WaitForSeconds(GetDelay(spinWaitTime));
+        yield return new WaitForSeconds(GetDelay(bossData.spinWaitTime));
 
         spinHitbox.transform.position = transform.position;
 
-        spinHitbox.transform.localScale = new Vector3(spinRange * 2f, spinRange * 2f, 1f);
+        spinHitbox.transform.localScale = new Vector3(bossData.spinRange * 2f, bossData.spinRange * 2f, 1f);
 
         spinHitbox.SetActive(true);
 
         Debug.Log("보스 회전 베기");
 
-        yield return new WaitForSeconds(GetDelay(spinActiveTime));
+        yield return new WaitForSeconds(GetDelay(bossData.spinActiveTime));
 
         spinHitbox.SetActive(false);
 
@@ -302,7 +330,7 @@ public class Boss : MonoBehaviour
     {
         Debug.Log("보스 점프 준비");
 
-        yield return new WaitForSeconds(GetDelay(jumpReadyTime));
+        yield return new WaitForSeconds(GetDelay(bossData.jumpReadyTime));
 
         Vector2 startJump = transform.position;
 
@@ -312,20 +340,20 @@ public class Boss : MonoBehaviour
 
         jumpWarningCircle.transform.position = endJump;
 
-        jumpWarningCircle.transform.localScale = new Vector3(jumpRadius * 2f, jumpRadius * 2f, 1f);
+        jumpWarningCircle.transform.localScale = new Vector3(bossData.jumpRadius * 2f, bossData.jumpRadius * 2f, 1f);
 
         jumpWarningCircle.SetActive(true);
 
-        yield return new WaitForSeconds(GetDelay(jumpWarningTime));
+        yield return new WaitForSeconds(GetDelay(bossData.jumpWarningTime));
 
         jumpWarningCircle.SetActive(false);
 
         float elasped = 0f;
 
-        while (elasped < jumpUpTime)
+        while (elasped < bossData.jumpUpTime)
         {
             elasped = elasped + Time.deltaTime;
-            float t = elasped / jumpUpTime;
+            float t = elasped / bossData.jumpUpTime;
             rb.MovePosition(Vector2.Lerp(startJump, endJump, t));
             yield return null;
         }
@@ -339,11 +367,11 @@ public class Boss : MonoBehaviour
 
         jumpHitbox.transform.position = endJump;
 
-        jumpHitbox.transform.localScale = new Vector3(jumpRadius * 2f, jumpRadius * 2f, 1f);
+        jumpHitbox.transform.localScale = new Vector3(bossData.jumpRadius * 2f, bossData.jumpRadius * 2f, 1f);
 
         jumpHitbox.SetActive(true);
 
-        yield return new WaitForSeconds(GetDelay(jumpActiveTime));
+        yield return new WaitForSeconds(GetDelay(bossData.jumpActiveTime));
 
         jumpHitbox.SetActive(false);
 
@@ -369,7 +397,7 @@ public class Boss : MonoBehaviour
 
         Debug.Log("보스 2페이즈 전환 시작");
 
-        yield return new WaitForSeconds(GetDelay(phaseTransTime));
+        yield return new WaitForSeconds(GetDelay(bossData.phaseTransTime));
 
         currentPhase = 2;
 
@@ -391,7 +419,7 @@ public class Boss : MonoBehaviour
 
         gameObject.SetActive(false);
 
-        GameManager.In
+        GameManager.Instance.ShowVictory();
 
     }
 
@@ -405,7 +433,7 @@ public class Boss : MonoBehaviour
         }
 
         currentHp = currentHp - damage;
-        Debug.Log("보스 HP: " + currentHp + "/" + maxHp);
+        Debug.Log("보스 HP: " + currentHp + "/" + bossData.maxHp);
 
         if (currentHp <= 0)
         {
@@ -413,7 +441,7 @@ public class Boss : MonoBehaviour
             return;
         }
 
-        if (currentPhase == 1 && currentHp <= maxHp * 0.5f)
+        if (currentPhase == 1 && currentHp <= bossData.maxHp * 0.5f)
         {
             StartCoroutine(PhaseTransRoutine());
         }
@@ -428,8 +456,8 @@ public class Boss : MonoBehaviour
         StopAllCoroutines();
 
         attackHitbox.SetActive(false);
-
-        gameObject.SetActive(false);
+        
+        StartCoroutine(DeathCoroutine());
 
     }
 
