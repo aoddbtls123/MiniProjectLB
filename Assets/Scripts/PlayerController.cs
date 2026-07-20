@@ -64,7 +64,11 @@ public class PlayerController : MonoBehaviour
         if (moveDirection != Vector2.zero)
         {
             lastLookDirection = moveDirection.normalized;
+<<<<<<< HEAD
             transform.up = lastLookDirection;
+=======
+            transform.up= lastLookDirection;
+>>>>>>> feat/Player-Control
         }
 
         if (Mouse.current.rightButton.wasPressedThisFrame && canDash && !isDashing)

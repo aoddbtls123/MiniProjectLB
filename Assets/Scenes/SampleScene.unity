@@ -376,7 +376,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5651a3b37f97e8b4faf0dc1fdb0da329, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossAttack
-  attackDamage: 20
+  attackDamage: 10
 --- !u!61 &190051958
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -513,7 +513,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5651a3b37f97e8b4faf0dc1fdb0da329, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossAttack
-  attackDamage: 30
+  attackDamage: 15
 --- !u!58 &221762026
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -1028,7 +1028,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5651a3b37f97e8b4faf0dc1fdb0da329, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossAttack
-  attackDamage: 20
+  attackDamage: 30
 --- !u!4 &791895405
 Transform:
   m_ObjectHideFlags: 0
@@ -1539,7 +1539,7 @@ MonoBehaviour:
   dashSpeed: 16
   dashDuration: 0.3
   dashCoolDown: 1
-  attackActivetime: 0.1
+  attackActivetime: 0.2
   attackCoolDown: 0.5
   attackHitbox: {fileID: 2125822590}
   isInvincible: 0
