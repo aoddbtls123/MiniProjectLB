@@ -304,13 +304,14 @@ MonoBehaviour:
   maxHp: 100
   currentState: 0
   phaseTransTime: 5
+  phase2SpeedMultiplier: 0.6
   patternDelay: 1
   attackHitbox: {fileID: 190051955}
   dashHitbox: {fileID: 733241106}
   spinHitbox: {fileID: 221762024}
   jumpHitbox: {fileID: 791895403}
   jumpWarningCircle: {fileID: 1491767832}
-  moveSpeed: 35
+  moveSpeed: 32
   basicAttackWaitTime: 1
   basicAttackActiveTime: 0.2
   attackRange: 3
@@ -321,7 +322,7 @@ MonoBehaviour:
   dashMoveTime: 0.08
   phase2DashCount: 3
   dashChainDelay: 0.3
-  spinWaitTime: 1
+  spinWaitTime: 1.2
   spinActiveTime: 0.3
   spinRange: 5
   jumpReadyTime: 1

@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.UIElements;
 
 public class Boss : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class Boss : MonoBehaviour
     public State currentState = State.Idle;
 
     [SerializeField] float phaseTransTime = 5f;
+    [SerializeField] float phase2SpeedMultiplier = 0.8f;
 
     [SerializeField] float patternDelay = 1f;
     [SerializeField] GameObject attackHitbox;
@@ -62,6 +64,12 @@ public class Boss : MonoBehaviour
     private bool isInvincible = false;
 
     private Coroutine patternLoopRoutine;
+
+    private float GetDelay(float baseDelay)
+    {
+        return currentPhase == 2 ? baseDelay * phase2SpeedMultiplier : baseDelay;
+    }
+
       
 
 
@@ -92,7 +100,7 @@ public class Boss : MonoBehaviour
         while (currentState != State.Dead)
         {
             currentState = State.Idle;
-            yield return new WaitForSeconds(patternDelay);
+            yield return new WaitForSeconds(GetDelay(patternDelay));
 
 
             currentState = State.Pattern;
@@ -134,7 +142,7 @@ public class Boss : MonoBehaviour
             yield return null;
         }
 
-        yield return new WaitForSeconds(basicAttackWaitTime);
+        yield return new WaitForSeconds(GetDelay(basicAttackWaitTime));
 
         Vector2 dir = (player.position - transform.position).normalized;
 
@@ -148,7 +156,7 @@ public class Boss : MonoBehaviour
         
         attackHitbox.SetActive(true);
 
-        yield return new WaitForSeconds(basicAttackActiveTime);
+        yield return new WaitForSeconds(GetDelay(basicAttackActiveTime));
 
         attackHitbox.SetActive(false);
 
@@ -163,13 +171,13 @@ public class Boss : MonoBehaviour
 
         transform.right = dashDir;
 
-        yield return new WaitForSeconds(dashAttackWaitTime);
+        yield return new WaitForSeconds(GetDelay(dashAttackWaitTime));
 
         dashDir = (player.position - transform.position).normalized;
 
         transform.right = dashDir;
 
-        yield return new WaitForSeconds(dashReadyTime); 
+        yield return new WaitForSeconds(GetDelay(dashReadyTime)); 
 
         Debug.Log("보스 돌진 공격");
 
@@ -213,7 +221,7 @@ public class Boss : MonoBehaviour
 
         transform.right = dashDir;
 
-        yield return new WaitForSeconds(dashAttackWaitTime);
+        yield return new WaitForSeconds(GetDelay(dashAttackWaitTime));
 
         for (int i = 0; i< phase2DashCount; i++)
 
@@ -222,7 +230,7 @@ public class Boss : MonoBehaviour
 
             transform.right = dashDir;
 
-            yield return new WaitForSeconds(dashAttackWaitTime);
+            yield return new WaitForSeconds(GetDelay(dashAttackWaitTime));
 
             Vector2 startDash = transform.position;
 
@@ -256,7 +264,7 @@ public class Boss : MonoBehaviour
 
             dashHitbox.SetActive(false);
 
-            yield return new WaitForSeconds(dashChainDelay);
+            yield return new WaitForSeconds(GetDelay(dashChainDelay));
         }
 
     }
@@ -268,7 +276,7 @@ public class Boss : MonoBehaviour
         Debug.Log("보스 회전 베기 예고");
 
 
-        yield return new WaitForSeconds(spinWaitTime);
+        yield return new WaitForSeconds(GetDelay(spinWaitTime));
 
         spinHitbox.transform.position = transform.position;
 
@@ -278,7 +286,7 @@ public class Boss : MonoBehaviour
 
         Debug.Log("보스 회전 베기");
 
-        yield return new WaitForSeconds(spinActiveTime);
+        yield return new WaitForSeconds(GetDelay(spinActiveTime));
 
         spinHitbox.SetActive(false);
 
@@ -294,7 +302,7 @@ public class Boss : MonoBehaviour
     {
         Debug.Log("보스 점프 준비");
 
-        yield return new WaitForSeconds(jumpReadyTime);
+        yield return new WaitForSeconds(GetDelay(jumpReadyTime));
 
         Vector2 startJump = transform.position;
 
@@ -308,7 +316,7 @@ public class Boss : MonoBehaviour
 
         jumpWarningCircle.SetActive(true);
 
-        yield return new WaitForSeconds(jumpWarningTime);
+        yield return new WaitForSeconds(GetDelay(jumpWarningTime));
 
         jumpWarningCircle.SetActive(false);
 
@@ -335,7 +343,7 @@ public class Boss : MonoBehaviour
 
         jumpHitbox.SetActive(true);
 
-        yield return new WaitForSeconds(jumpActiveTime);
+        yield return new WaitForSeconds(GetDelay(jumpActiveTime));
 
         jumpHitbox.SetActive(false);
 
@@ -361,7 +369,7 @@ public class Boss : MonoBehaviour
 
         Debug.Log("보스 2페이즈 전환 시작");
 
-        yield return new WaitForSeconds(phaseTransTime);
+        yield return new WaitForSeconds(GetDelay(phaseTransTime));
 
         currentPhase = 2;
 
