@@ -28,8 +28,10 @@ public class Boss : MonoBehaviour
 
     
 
-
+    public enum State {Idle, Pattern, PhaseTrans, Dead};
+    public State currentState = State.Idle;
     public enum PatternType { Basic, Dash, Spin, Jump, MultiDash}
+
 
     private float currentHp;
 
@@ -60,7 +62,7 @@ public class Boss : MonoBehaviour
 
             PatternType[] patterns = { PatternType.Jump, dashOrMulti, PatternType.Basic };
 
-            float[] weights = { jumpFarPoints, dashFarPoints, basicClosePoints };
+            float[] weights = { jumpFarPoints, dashFarPoints, basicFarPoints };
 
             return PointsPick(patterns, weights);
 
@@ -132,29 +134,34 @@ public class Boss : MonoBehaviour
 
 
             currentState = State.Pattern;
-            if(patternNumber == 0)
+
+            PatternType nextPattern = NextPatternChoose();
+
+            switch (nextPattern)
+
             {
-                yield return StartCoroutine(BasicAttack());
+                case PatternType.Basic:
+                    yield return StartCoroutine(BasicAttack());
+                    break;
+
+                case PatternType.Dash:
+                    yield return StartCoroutine(DashAttack());
+                    break;
+
+                case PatternType.Spin:
+                    yield return StartCoroutine(SpinAttack());
+                    break;
+
+                case PatternType.Jump:
+                    yield return StartCoroutine(JumpAttack());
+                    break;
+
+                case PatternType.MultiDash:
+                    yield return StartCoroutine(MultiDashAttack());
+                    break;
+
 
             }
-            else if (patternNumber == 1)
-            {
-                yield return StartCoroutine(DashAttack());
-            }
-            else if (patternNumber == 2)
-            {
-                yield return StartCoroutine(SpinAttack());
-            }
-            else if (patternNumber == 3)
-            {
-                yield return StartCoroutine(JumpAttack());
-            }
-            else
-            {
-                yield return StartCoroutine(MultiDashAttack());
-            }
-
-                patternNumber = (patternNumber + 1) % 5;
         }
     }
 

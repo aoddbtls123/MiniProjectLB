@@ -12,7 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 614a78a07c2adda49a37dfdfeeb0bdb5, type: 3}
   m_Name: BossDataDefault
   m_EditorClassIdentifier: Assembly-CSharp::BossData
-  maxHp: 100
+  maxHp: 150
   patternDelay: 1
   phaseTransTime: 5
   phase2SpeedMultiplier: 0.7
+  moveSpeed: 32
+  basicAttackWaitTime: 1
+  basicAttackActiveTime: 0.2
+  attackRange: 3
+  dashHitboxScale: {x: 2, y: 2}
+  dashAttackWaitTime: 1
+  dashReadyTime: 0.5
+  dashOvershoot: 3
+  dashMoveTime: 0.08
+  phase2DashCount: 3
+  dashChainDelay: 0.35
+  spinWaitTime: 1.5
+  spinActiveTime: 1
+  spinRange: 5
+  jumpReadyTime: 1
+  jumpUpTime: 0.5
+  jumpActiveTime: 0.5
+  jumpRadius: 5
+  jumpWarningTime: 1

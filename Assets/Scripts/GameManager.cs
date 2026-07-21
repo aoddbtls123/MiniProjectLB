@@ -15,6 +15,8 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        victoryPanel.SetActive(false);
+        defeatPanel.SetActive(false);
     }
 
     //½Â¸®
