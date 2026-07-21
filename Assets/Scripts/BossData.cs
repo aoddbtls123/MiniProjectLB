@@ -44,4 +44,6 @@ public class BossData : ScriptableObject
     public float jumpRadius = 2f;
     public float jumpWarningTime = 1f;
 
+    public float vulnerableDuration = 2.5f;
+
 }

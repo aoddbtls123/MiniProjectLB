@@ -17,32 +17,40 @@ public class Boss : MonoBehaviour
     [SerializeField] GameObject jumpWarningCircle;
 
 
-    float farDistancePoint = 5f;
+    [SerializeField] float farDistancePoint = 5f;
 
-    float jumpFarPoints = 5f;
-    float dashFarPoints = 2f;
-    float basicFarPoints = 3f;
+    [SerializeField] float jumpFarPoints = 5f;
+    [SerializeField] float dashFarPoints = 2f;
+    [SerializeField] float basicFarPoints = 3f;
 
-    float basicClosePoints = 5f;
-    float spinClosePoints = 5f;
+    [SerializeField] float basicClosePoints = 5f;
+    [SerializeField] float spinClosePoints = 5f;
 
     
 
-    public enum State {Idle, Pattern, PhaseTrans, Dead};
+    public enum State {Idle, Pattern, PhaseTrans, Parried, Dead};
     public State currentState = State.Idle;
     public enum PatternType { Basic, Dash, Spin, Jump, MultiDash}
 
 
     private float currentHp;
 
+
     private Transform player;
     private Rigidbody2D rb;
 
-    private int currentPhase = 1;
 
+    private int currentPhase = 1;
     private bool isInvincible = false;
+    private bool isDashUnloaked = false;
+    private bool hasShownHiddenPhase = false;
+    private bool pendingHiddenPhase = false;
+    private bool isParryable = false;
+    private bool wasParried = false;
 
     private Coroutine patternLoopRoutine;
+
+
 
     private float GetDelay(float baseDelay)
     {
@@ -56,23 +64,37 @@ public class Boss : MonoBehaviour
 
         bool isFar = distance > farDistancePoint;
 
-        if(isFar)
+        if (isFar)
         {
-            PatternType dashOrMulti = currentPhase == 2 ? PatternType.MultiDash : PatternType.Dash;
+            if (!isDashUnloaked)
+            {
+                PatternType[] patterns = { PatternType.Jump, PatternType.Basic };
 
-            PatternType[] patterns = { PatternType.Jump, dashOrMulti, PatternType.Basic };
+                float[] weights = { jumpFarPoints, basicFarPoints };
 
-            float[] weights = { jumpFarPoints, dashFarPoints, basicFarPoints };
+                return PointsPick(patterns, weights);
 
-            return PointsPick(patterns, weights);
+            }
+            else
+            {
+                PatternType dashOrMulti = currentPhase == 2 ? PatternType.MultiDash : PatternType.Dash;
 
+                PatternType[] patterns = { PatternType.Jump, dashOrMulti, PatternType.Basic};
+
+                float[] weights = { jumpFarPoints, dashFarPoints, basicFarPoints };
+
+                return PointsPick(patterns, weights);
+            }
         }
+
         else
         {
             PatternType[] patterns = { PatternType.Basic, PatternType.Spin };
+
             float[] weights = { basicClosePoints, spinClosePoints };
 
-            return PointsPick(patterns,weights);
+            return PointsPick(patterns, weights);
+
         }
     }
 
@@ -103,7 +125,9 @@ public class Boss : MonoBehaviour
         return patterns[patterns.Length - 1];
     }
 
-        
+
+
+
 
 
 
@@ -135,7 +159,18 @@ public class Boss : MonoBehaviour
 
             currentState = State.Pattern;
 
+            if (pendingHiddenPhase)
+            {
+                pendingHiddenPhase = false;
+
+                yield return StartCoroutine(HiddenPhaseRoutine());
+
+                continue;
+            }
+
             PatternType nextPattern = NextPatternChoose();
+
+
 
             switch (nextPattern)
 
@@ -211,6 +246,22 @@ public class Boss : MonoBehaviour
         dashDir = (player.position - transform.position).normalized;
 
         transform.right = dashDir;
+
+        Debug.Log("패리 가능 구간");
+
+        isParryable = true;
+
+        float readyElapsed = 0f;
+
+        while (readyElapsed < GetDelay(bossData.dashReadyTime))
+        {
+            if (wasParried)
+            {
+
+            }
+        }
+
+
 
         yield return new WaitForSeconds(GetDelay(bossData.dashReadyTime)); 
 
@@ -431,6 +482,19 @@ public class Boss : MonoBehaviour
     }
 
 
+
+    IEnumerator HiddenPhaseRoutine()
+    {
+        Debug.Log("숨은 페이즈 분기점 발동");
+
+        yield return StartCoroutine(SpinAttack());
+        yield return StartCoroutine(DashAttack());
+
+        isDashUnloaked = true;
+    }
+
+
+
     public void TakeDamage(float damage)
     {
 
@@ -448,7 +512,13 @@ public class Boss : MonoBehaviour
             return;
         }
 
-        if (currentPhase == 1 && currentHp <= bossData.maxHp * 0.5f)
+        if (!hasShownHiddenPhase && currentPhase == 1 && currentHp <= bossData.maxHp * 0.8f)
+        {
+            hasShownHiddenPhase = true;
+            pendingHiddenPhase = true;
+        }
+
+        if (currentPhase == 1&& currentHp <= bossData.maxHp *0.5f)
         {
             StartCoroutine(PhaseTransRoutine());
         }

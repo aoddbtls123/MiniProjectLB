@@ -28,7 +28,7 @@ MonoBehaviour:
   phase2DashCount: 3
   dashChainDelay: 0.35
   spinWaitTime: 1.5
-  spinActiveTime: 1
+  spinActiveTime: 0.3
   spinRange: 5
   jumpReadyTime: 1
   jumpUpTime: 0.5

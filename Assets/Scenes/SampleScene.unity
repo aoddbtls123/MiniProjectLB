@@ -516,31 +516,12 @@ MonoBehaviour:
   bossBodyCollider: {fileID: 115989718}
   playerBodyCollider: {fileID: 2057568285}
   bossData: {fileID: 11400000, guid: 1d3e0b05b4a70c341ace8b7e3d9410fc, type: 2}
-  currentState: 0
   attackHitbox: {fileID: 190051955}
   dashHitbox: {fileID: 733241106}
   spinHitbox: {fileID: 221762024}
   jumpHitbox: {fileID: 791895403}
   jumpWarningCircle: {fileID: 1491767832}
-  moveSpeed: 32
-  basicAttackWaitTime: 1
-  basicAttackActiveTime: 0.2
-  attackRange: 3
-  dashHitboxScale: {x: 1.5, y: 1.5}
-  dashAttackWaitTime: 1
-  dashReadyTime: 0.5
-  dashOvershoot: 3
-  dashMoveTime: 0.08
-  phase2DashCount: 3
-  dashChainDelay: 0.3
-  spinWaitTime: 1.2
-  spinActiveTime: 0.3
-  spinRange: 5
-  jumpReadyTime: 1
-  jumpUpTime: 0.5
-  jumpActiveTime: 0.3
-  jumpRadius: 6
-  jumpWarningTime: 0.6
+  currentState: 0
 --- !u!1 &190051955
 GameObject:
   m_ObjectHideFlags: 0
@@ -587,7 +568,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5651a3b37f97e8b4faf0dc1fdb0da329, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossAttack
-  attackDamage: 10
+  attackDamage: 1
 --- !u!61 &190051958
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -827,7 +808,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5651a3b37f97e8b4faf0dc1fdb0da329, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossAttack
-  attackDamage: 15
+  attackDamage: 1
 --- !u!58 &221762026
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -1191,7 +1172,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5651a3b37f97e8b4faf0dc1fdb0da329, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossAttack
-  attackDamage: 30
+  attackDamage: 1
 --- !u!61 &733241108
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1479,7 +1460,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5651a3b37f97e8b4faf0dc1fdb0da329, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossAttack
-  attackDamage: 30
+  attackDamage: 1
 --- !u!4 &791895405
 Transform:
   m_ObjectHideFlags: 0
