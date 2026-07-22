@@ -20,18 +20,19 @@ MonoBehaviour:
   basicAttackWaitTime: 1
   basicAttackActiveTime: 0.2
   attackRange: 3
-  dashHitboxScale: {x: 2, y: 2}
+  dashHitboxScale: {x: 3, y: 3}
   dashAttackWaitTime: 1
-  dashReadyTime: 0.5
+  dashReadyTime: 2
   dashOvershoot: 3
   dashMoveTime: 0.08
   phase2DashCount: 3
   dashChainDelay: 0.35
   spinWaitTime: 1.5
   spinActiveTime: 0.3
-  spinRange: 5
-  jumpReadyTime: 1
+  spinRange: 4
+  jumpReadyTime: 0.8
   jumpUpTime: 0.5
   jumpActiveTime: 0.5
-  jumpRadius: 5
+  jumpRadius: 6
   jumpWarningTime: 1
+  vulnerableDuration: 2.5

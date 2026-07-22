@@ -7,6 +7,10 @@ public class PlayerHealth : MonoBehaviour
     private float currentHp;
     private PlayerController playerController;
 
+    public float GetHpRatio()
+    {
+        return currentHp / maxHp;
+    }
 
 
     void Start()
@@ -14,6 +18,8 @@ public class PlayerHealth : MonoBehaviour
         currentHp = maxHp;
         playerController = GetComponent<PlayerController>();
     }
+
+
 
     public void TakeDamage(float damage)
     {

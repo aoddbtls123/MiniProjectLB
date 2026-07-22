@@ -50,6 +50,11 @@ public class Boss : MonoBehaviour
 
     private Coroutine patternLoopRoutine;
 
+    public float GetHpRatio()
+    {
+        return currentHp / bossData.maxHp;
+    }
+
 
 
     private float GetDelay(float baseDelay)
@@ -257,13 +262,21 @@ public class Boss : MonoBehaviour
         {
             if (wasParried)
             {
+                isParryable = false;
+                wasParried = false;
 
+                yield return StartCoroutine(ParriedRoutine());
+
+                yield break;
             }
+
+            readyElapsed = readyElapsed + Time.deltaTime;
+
+            yield return null;
         }
 
+        isParryable = false;
 
-
-        yield return new WaitForSeconds(GetDelay(bossData.dashReadyTime)); 
 
         Debug.Log("보스 돌진 공격");
 
@@ -317,6 +330,34 @@ public class Boss : MonoBehaviour
             transform.right = dashDir;
 
             yield return new WaitForSeconds(GetDelay(bossData.dashAttackWaitTime));
+
+            dashDir = (player.position - transform.position).normalized;
+
+            transform.right = dashDir;
+
+            Debug.Log("연속 돌진 패링 가능");
+
+            isParryable = true;
+
+            float readyElapsed = 0f;
+
+            while(readyElapsed < GetDelay(bossData.dashReadyTime))
+            {
+                if (wasParried)
+                {
+                    isParryable = false;
+                    wasParried = false;
+                    yield return StartCoroutine(ParriedRoutine());
+                    yield break;
+                }
+
+                readyElapsed = readyElapsed+Time.deltaTime;
+
+                yield return null;
+
+            }
+
+            isParryable = false;
 
             Vector2 startDash = transform.position;
 
@@ -461,11 +502,16 @@ public class Boss : MonoBehaviour
 
         isInvincible = false;
 
+        Debug.Log("보스 2페이즈 전환, 연속돌진 실행");
+
+        currentState = State.Pattern;
+
+        yield return StartCoroutine(MultiDashAttack());
+
         currentState = State.Idle;
 
-        Debug.Log("보스 2페이즈 전환");
-
         patternLoopRoutine = StartCoroutine(PatternLoop());
+
 
     }
 
@@ -494,6 +540,22 @@ public class Boss : MonoBehaviour
     }
 
 
+    IEnumerator ParriedRoutine()
+    {
+        Debug.Log("보스 패리됨");
+
+        currentState = State.Parried;
+
+        dashHitbox.SetActive(false);
+
+        yield return new WaitForSeconds(bossData.vulnerableDuration);
+
+        Debug.Log("보스 패리 상태 종료");
+
+        currentState = State.Idle;
+    }
+
+
 
     public void TakeDamage(float damage)
     {
@@ -503,7 +565,14 @@ public class Boss : MonoBehaviour
             return;
         }
 
+        if (isParryable)
+        {
+            wasParried = true;
+            return;
+        }
+
         currentHp = currentHp - damage;
+
         Debug.Log("보스 HP: " + currentHp + "/" + bossData.maxHp);
 
         if (currentHp <= 0)
