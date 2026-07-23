@@ -41,7 +41,7 @@ public class GameManager : MonoBehaviour
     //타이틀로
     public void GotoTitle()
     {
-        SceneManager.LoadScene("라스트 블레이드");
+        SceneManager.LoadScene("Title");
     }
 
 

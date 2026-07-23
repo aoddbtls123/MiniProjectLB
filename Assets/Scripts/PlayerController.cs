@@ -67,8 +67,6 @@ public class PlayerController : MonoBehaviour
 
             transform.up = lastLookDirection;
 
-            transform.up= lastLookDirection;
-
         }
 
         if (Mouse.current.rightButton.wasPressedThisFrame && canDash && !isDashing)
@@ -134,7 +132,7 @@ public class PlayerController : MonoBehaviour
         {
             return;
         }
-        rb.MovePosition(rb.position + moveDirection * moveSpeed * Time.deltaTime);
+        rb.MovePosition(rb.position + moveDirection * moveSpeed * Time.fixedDeltaTime);
 
     }
 
