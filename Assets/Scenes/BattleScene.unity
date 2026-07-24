@@ -527,6 +527,7 @@ MonoBehaviour:
   basicFarPoints: 5
   basicClosePoints: 5
   spinClosePoints: 6
+  hitStopDuration: 0.05
   currentState: 0
 --- !u!1 &190051955
 GameObject:
@@ -3210,6 +3211,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   maxHp: 60
+  hitStopDuration: 0.07
 --- !u!1 &2125822590
 GameObject:
   m_ObjectHideFlags: 0

@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
 
 
 
+
     private Rigidbody2D rb;
     private Vector2 moveDirection;
     private Vector2 lastLookDirection = Vector2.right;

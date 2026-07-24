@@ -26,7 +26,11 @@ public class Boss : MonoBehaviour
     [SerializeField] float basicClosePoints = 5f;
     [SerializeField] float spinClosePoints = 5f;
 
-    
+    [SerializeField] float hitStopDuration = 0.05f;
+
+
+
+
 
     public enum State {Idle, Pattern, PhaseTrans, Parried, Dead};
     public State currentState = State.Idle;
@@ -572,6 +576,8 @@ public class Boss : MonoBehaviour
         }
 
         currentHp = currentHp - damage;
+
+        GameManager.Instance.HitStop(hitStopDuration);
 
         Debug.Log("º¸½º HP: " + currentHp + "/" + bossData.maxHp);
 

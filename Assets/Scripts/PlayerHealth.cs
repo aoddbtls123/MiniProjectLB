@@ -7,6 +7,8 @@ public class PlayerHealth : MonoBehaviour
     private float currentHp;
     private PlayerController playerController;
 
+    [SerializeField] float hitStopDuration = 0.05f;
+
     public float GetHpRatio()
     {
         return currentHp / maxHp;
@@ -29,6 +31,8 @@ public class PlayerHealth : MonoBehaviour
         }
 
         currentHp = currentHp - damage;
+
+        GameManager.Instance.HitStop(hitStopDuration);
 
         Debug.Log("플레이어 HP: " + currentHp + "/" + maxHp);
 
