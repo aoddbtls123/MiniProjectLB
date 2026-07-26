@@ -74,6 +74,33 @@ public class GameManager : MonoBehaviour
     }
 
 
+    // È­¸é Èçµé¸²
+
+    public void ShakeCamera(float duration)
+    {
+        StartCoroutine(ShakeCameraRoutine(duration));
+
+
+    }
+
+    private IEnumerator ShakeCameraRoutine(float duration)
+    {
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            float offsetX = Random.Range(-1, 1f) * shakePower;
+            float offsetY = Random.Range(-1, 1f) * shakePower;
+
+            mainCamera.transform.position = cameraPos + new Vector3(offsetX, offsetY, 0f);
+
+            elapsed = elapsed + Time.unscaledDeltaTime;
+
+            yield return null;
+        }
+
+        mainCamera.transform.position = cameraPos;
+    }
 
 
 }
