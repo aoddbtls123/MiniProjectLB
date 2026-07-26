@@ -33,6 +33,7 @@ public class PlayerHealth : MonoBehaviour
         currentHp = currentHp - damage;
 
         GameManager.Instance.HitStop(hitStopDuration);
+        GameManager.Instance.ShakeCamera(hitStopDuration);
 
         Debug.Log("플레이어 HP: " + currentHp + "/" + maxHp);
 
