@@ -21,9 +21,9 @@ MonoBehaviour:
   basicAttackActiveTime: 0.2
   attackRange: 3
   dashHitboxScale: {x: 3, y: 3}
-  dashAttackWaitTime: 1
-  dashReadyTime: 2
-  dashOvershoot: 3
+  dashAttackWaitTime: 1.5
+  dashReadyTime: 1.5
+  dashOvershoot: 4
   dashMoveTime: 0.08
   phase2DashCount: 3
   dashChainDelay: 0.35
