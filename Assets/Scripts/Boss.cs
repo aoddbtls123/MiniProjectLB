@@ -578,6 +578,7 @@ public class Boss : MonoBehaviour
         currentHp = currentHp - damage;
 
         GameManager.Instance.HitStop(hitStopDuration);
+        GameManager.Instance.ShakeCamera(hitStopDuration);
 
         Debug.Log("º¸½º HP: " + currentHp + "/" + bossData.maxHp);
 
