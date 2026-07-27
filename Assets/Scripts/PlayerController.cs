@@ -14,6 +14,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float attackCoolDown = 0.5f;
     [SerializeField] GameObject attackHitbox;
 
+    [SerializeField] Transform visualTransform;
+    [SerializeField] SpriteRenderer spriteRenderer;
+
+    [SerializeField] Animator animator;
+
+
 
 
 
@@ -70,15 +76,30 @@ public class PlayerController : MonoBehaviour
 
         }
 
-        if (Mouse.current.rightButton.wasPressedThisFrame && canDash && !isDashing)
+        animator.SetBool("IsMoving", moveDirection != Vector2.zero);
+
+        visualTransform.rotation = Quaternion.identity;
+
+        if (lastLookDirection.x < 0f)
         {
-            StartCoroutine(Dash());
+            spriteRenderer.flipX = true;
+        }
+        else if (lastLookDirection.x>0f)
+        {
+            spriteRenderer.flipX= false;
         }
 
         if (Mouse.current.leftButton.wasPressedThisFrame && !isDashing && !isAttacking && canAttack)
         {
             StartCoroutine(Attack());
         }
+
+        if (Mouse.current.rightButton.wasPressedThisFrame && canDash && !isDashing)
+        {
+            StartCoroutine(Dash());
+        }
+
+
 
     }
 
@@ -112,6 +133,8 @@ public class PlayerController : MonoBehaviour
     {
         canAttack = false;
         isAttacking = true;
+
+        animator.SetTrigger("Attack");
 
         attackHitbox.SetActive(true);
 

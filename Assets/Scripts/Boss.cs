@@ -28,6 +28,11 @@ public class Boss : MonoBehaviour
 
     [SerializeField] float hitStopDuration = 0.05f;
 
+    [SerializeField] SpriteRenderer bossSprite;
+
+    [SerializeField] Animator animator;
+    
+
 
 
 
@@ -135,6 +140,20 @@ public class Boss : MonoBehaviour
     }
 
 
+    private void FaceDeriction(Vector2 dir)
+    {
+        if (dir.x < 0f)
+        {
+            bossSprite.flipX = true;
+        }
+        else if (dir.x > 0f)
+        {
+            bossSprite.flipX = false;
+        }
+
+    }
+
+
 
 
 
@@ -212,6 +231,9 @@ public class Boss : MonoBehaviour
 
     IEnumerator BasicAttack() //Boss's basic attack coroutine
     {
+
+        animator.SetBool("IsRunning", true);
+
         while (Vector2.Distance(transform.position, player.position) > (bossData.attackRange))
         {
             Vector2 moveDir = (player.position - transform.position).normalized;
@@ -221,15 +243,21 @@ public class Boss : MonoBehaviour
             yield return null;
         }
 
+        animator.SetBool("IsRunning", false);
+
         yield return new WaitForSeconds(GetDelay(bossData.basicAttackWaitTime));
 
         Vector2 dir = (player.position - transform.position).normalized;
 
-        transform.right = dir;
+        FaceDeriction(dir);
 
         attackHitbox.transform.position = (Vector2)transform.position + (dir * bossData.attackRange);
 
         attackHitbox.transform.right = dir;
+
+        animator.SetTrigger("Attack");
+
+        yield return new WaitForSeconds(0.3f);
 
         Debug.Log("보스 기본 공격");
         
@@ -248,17 +276,21 @@ public class Boss : MonoBehaviour
 
         Vector2 dashDir = (player.position - transform.position).normalized;
 
-        transform.right = dashDir;
+        FaceDeriction(dashDir);
 
         yield return new WaitForSeconds(GetDelay(bossData.dashAttackWaitTime));
 
         dashDir = (player.position - transform.position).normalized;
 
-        transform.right = dashDir;
+        FaceDeriction(dashDir);
 
         Debug.Log("패리 가능 구간");
 
+        animator.SetTrigger("Attack");
+
         isParryable = true;
+
+        
 
         float readyElapsed = 0f;
 
@@ -322,7 +354,7 @@ public class Boss : MonoBehaviour
     {
         Vector2 dashDir = (player.position - transform.position).normalized;
 
-        transform.right = dashDir;
+        FaceDeriction(dashDir);
 
         yield return new WaitForSeconds(GetDelay(bossData.dashAttackWaitTime));
 
@@ -331,17 +363,21 @@ public class Boss : MonoBehaviour
         {
             dashDir = (player.position - transform.position).normalized;
 
-            transform.right = dashDir;
+            FaceDeriction(dashDir);
 
             yield return new WaitForSeconds(GetDelay(bossData.dashAttackWaitTime));
 
             dashDir = (player.position - transform.position).normalized;
 
-            transform.right = dashDir;
+            FaceDeriction(dashDir);
 
             Debug.Log("연속 돌진 패링 가능");
 
+            animator.SetTrigger("Attack");
+
             isParryable = true;
+
+            
 
             float readyElapsed = 0f;
 
@@ -409,6 +445,10 @@ public class Boss : MonoBehaviour
 
         yield return new WaitForSeconds(GetDelay(bossData.spinWaitTime));
 
+        animator.SetTrigger("Attack");
+
+        yield return new WaitForSeconds(0.3f);
+
         spinHitbox.transform.position = transform.position;
 
         spinHitbox.transform.localScale = new Vector3(bossData.spinRange * 2f, bossData.spinRange * 2f, 1f);
@@ -451,6 +491,10 @@ public class Boss : MonoBehaviour
 
         jumpWarningCircle.SetActive(false);
 
+        animator.SetTrigger("Jump");
+
+        yield return new WaitForSeconds(0.3f);
+
         float elasped = 0f;
 
         while (elasped < bossData.jumpUpTime)
@@ -463,8 +507,9 @@ public class Boss : MonoBehaviour
 
         rb.MovePosition(endJump);
 
+        animator.SetTrigger("Attack");
 
-
+        yield return new WaitForSeconds(0.3f);
 
         Debug.Log("보스 착지 공격");
 
@@ -577,6 +622,11 @@ public class Boss : MonoBehaviour
 
         currentHp = currentHp - damage;
 
+        if(currentHp > 0)
+        {
+            animator.SetTrigger("Hit");
+        }
+
         GameManager.Instance.HitStop(hitStopDuration);
         GameManager.Instance.ShakeCamera(hitStopDuration);
 
@@ -605,6 +655,8 @@ public class Boss : MonoBehaviour
         currentState = State.Dead;
 
         Debug.Log("보스 토벌");
+
+        animator.SetTrigger("Death");
 
         StopAllCoroutines();
 
