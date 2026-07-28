@@ -1,15 +1,38 @@
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
+using UnityEditor.ShaderGraph.Internal;
 
 public class BossHpBar : MonoBehaviour
 {
     [SerializeField] Boss boss;
     [SerializeField] Image hpFill;
-    
+    [SerializeField] float tweenDuration = 0.3f;
 
-    // Update is called once per frame
+    private float lastRatio = 1f;
+    private Tween hpTween;
+
+
+    void Start()
+    {
+        lastRatio = boss.GetHpRatio();
+        hpFill.fillAmount = lastRatio;
+    }
+
+
     void Update()
     {
-        hpFill.fillAmount = boss.GetHpRatio();
+
+        float currentRatio = boss.GetHpRatio();
+
+        if (currentRatio != lastRatio)
+        {
+            lastRatio = currentRatio;
+
+            hpTween?.Kill();
+            hpTween = hpFill.DOFillAmount(currentRatio,tweenDuration);
+        }
+
+        
     }
 }

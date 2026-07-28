@@ -15,6 +15,7 @@ public class Boss : MonoBehaviour
     [SerializeField] GameObject spinHitbox;
     [SerializeField] GameObject jumpHitbox;
     [SerializeField] GameObject jumpWarningCircle;
+    [SerializeField] GameObject parryEffectPrefab;
 
 
     [SerializeField] float farDistancePoint = 5f;
@@ -58,6 +59,7 @@ public class Boss : MonoBehaviour
     private bool wasParried = false;
 
     private Coroutine patternLoopRoutine;
+    private Coroutine currentPatternRoutine;
 
     public float GetHpRatio()
     {
@@ -191,7 +193,9 @@ public class Boss : MonoBehaviour
             {
                 pendingHiddenPhase = false;
 
-                yield return StartCoroutine(HiddenPhaseRoutine());
+
+                currentPatternRoutine = StartCoroutine(HiddenPhaseRoutine());
+                yield return currentPatternRoutine;
 
                 continue;
             }
@@ -204,23 +208,29 @@ public class Boss : MonoBehaviour
 
             {
                 case PatternType.Basic:
-                    yield return StartCoroutine(BasicAttack());
+
+                    currentPatternRoutine = StartCoroutine(BasicAttack());
+                    yield return currentPatternRoutine;
                     break;
 
                 case PatternType.Dash:
-                    yield return StartCoroutine(DashAttack());
+                    currentPatternRoutine = StartCoroutine(DashAttack());
+                    yield return currentPatternRoutine;
                     break;
 
                 case PatternType.Spin:
-                    yield return StartCoroutine(SpinAttack());
+                    currentPatternRoutine = StartCoroutine(SpinAttack());
+                    yield return currentPatternRoutine;
                     break;
 
                 case PatternType.Jump:
-                    yield return StartCoroutine(JumpAttack());
+                    currentPatternRoutine = StartCoroutine(JumpAttack());
+                    yield return currentPatternRoutine;
                     break;
 
                 case PatternType.MultiDash:
-                    yield return StartCoroutine(MultiDashAttack());
+                    currentPatternRoutine = StartCoroutine(MultiDashAttack());
+                    yield return currentPatternRoutine;
                     break;
 
 
@@ -238,9 +248,11 @@ public class Boss : MonoBehaviour
         {
             Vector2 moveDir = (player.position - transform.position).normalized;
 
+            FaceDeriction(moveDir);
+
             rb.MovePosition(rb.position + moveDir* bossData.moveSpeed*Time.deltaTime);
 
-            yield return null;
+            yield return null; 
         }
 
         animator.SetBool("IsRunning", false);
@@ -537,6 +549,12 @@ public class Boss : MonoBehaviour
             StopCoroutine(patternLoopRoutine);
         }
 
+        if (currentPatternRoutine != null)
+        {
+            StopCoroutine(currentPatternRoutine);
+            currentPatternRoutine = null;
+        }
+
         attackHitbox.SetActive(false);
         dashHitbox.SetActive(false);
         spinHitbox.SetActive(false);
@@ -582,7 +600,10 @@ public class Boss : MonoBehaviour
     {
         Debug.Log("숨은 페이즈 분기점 발동");
 
+        currentPatternRoutine = StartCoroutine(SpinAttack());
         yield return StartCoroutine(SpinAttack());
+
+        currentPatternRoutine = StartCoroutine(DashAttack());
         yield return StartCoroutine(DashAttack());
 
         isDashUnloaked = true;
@@ -596,6 +617,8 @@ public class Boss : MonoBehaviour
         currentState = State.Parried;
 
         dashHitbox.SetActive(false);
+
+        Instantiate(parryEffectPrefab, transform.position, Quaternion.identity);
 
         yield return new WaitForSeconds(bossData.vulnerableDuration);
 
@@ -644,7 +667,7 @@ public class Boss : MonoBehaviour
             pendingHiddenPhase = true;
         }
 
-        if (currentPhase == 1&& currentHp <= bossData.maxHp *0.5f)
+        else if (currentPhase == 1 && currentHp <= bossData.maxHp * 0.5f)
         {
             StartCoroutine(PhaseTransRoutine());
         }

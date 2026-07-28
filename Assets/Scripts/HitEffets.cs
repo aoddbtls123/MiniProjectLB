@@ -24,7 +24,7 @@ public class HitEffets : MonoBehaviour
         float ratio = timer / lifeTime;
 
         Color c = startColor;
-        c.a = ratio;
+        c.a = 1f - ratio;
         sr.color = c;
 
         transform.localScale = Vector3.one * (1f + ratio * 0.5f);

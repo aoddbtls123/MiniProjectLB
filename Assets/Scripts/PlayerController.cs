@@ -109,9 +109,11 @@ public class PlayerController : MonoBehaviour
         canDash = false;
         isInvincible = true;
 
+        animator.SetTrigger("Dash");
+
         playerCollider.isTrigger = true;
 
-        rb.linearVelocity = (moveDirection * dashSpeed);
+        rb.linearVelocity = (lastLookDirection * dashSpeed);
         
         yield return new WaitForSeconds(dashDuration);
         
