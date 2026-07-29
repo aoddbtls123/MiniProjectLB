@@ -48,12 +48,16 @@ public class GameManager : MonoBehaviour
     //재도전
     public void Retry()
     {
+        Time.timeScale = 1f;
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     //타이틀로
     public void GotoTitle()
     {
+        Time.timeScale = 1f;
+
         SceneManager.LoadScene("Title");
     }
 

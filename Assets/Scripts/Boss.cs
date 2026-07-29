@@ -601,10 +601,10 @@ public class Boss : MonoBehaviour
         Debug.Log("숨은 페이즈 분기점 발동");
 
         currentPatternRoutine = StartCoroutine(SpinAttack());
-        yield return StartCoroutine(SpinAttack());
+        yield return currentPatternRoutine;
 
         currentPatternRoutine = StartCoroutine(DashAttack());
-        yield return StartCoroutine(DashAttack());
+        yield return currentPatternRoutine;
 
         isDashUnloaked = true;
     }
