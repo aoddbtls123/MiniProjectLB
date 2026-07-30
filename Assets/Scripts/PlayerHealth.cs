@@ -9,6 +9,9 @@ public class PlayerHealth : MonoBehaviour
 
     [SerializeField] float hitStopDuration = 0.05f;
 
+    [SerializeField] AudioClip hitSound;
+    [SerializeField] AudioClip deathSound;
+
     public float GetHpRatio()
     {
         return currentHp / maxHp;
@@ -35,6 +38,8 @@ public class PlayerHealth : MonoBehaviour
         GameManager.Instance.HitStop(hitStopDuration);
         GameManager.Instance.ShakeCamera(hitStopDuration);
 
+        GameManager.Instance.PlaySfx(hitSound);
+
         Debug.Log("플레이어 HP: " + currentHp + "/" + maxHp);
 
 
@@ -46,6 +51,7 @@ public class PlayerHealth : MonoBehaviour
 
     private void Die()
     {
+        GameManager.Instance.PlaySfx(deathSound);
         Debug.Log("플레이어 사망");
         GameManager.Instance.ShowDefeat();
         gameObject.SetActive(false);

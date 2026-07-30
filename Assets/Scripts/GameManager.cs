@@ -16,6 +16,42 @@ public class GameManager : MonoBehaviour
     [SerializeField] Camera mainCamera;
     [SerializeField] float shakePower = 0.2f;
 
+
+    [Header("Sound")]
+    [SerializeField] AudioSource sfxSource;
+    [SerializeField] AudioClip victorySound;
+    [SerializeField] AudioClip defeatSound;
+
+    [Header("BackgroundBgm")]
+    [SerializeField] AudioSource bgmSource;
+
+
+
+    public void PlayBgm(AudioClip clip)
+    {
+        if (clip == null)
+        {
+            return;
+        }
+        if (bgmSource.clip == clip)
+        {
+            return;
+        }
+
+        bgmSource.clip = clip;
+        bgmSource.Play();
+    }
+
+
+    public void PlaySfx(AudioClip clip)
+    {
+        if (clip == null)
+        {
+            return;
+        }
+        sfxSource.PlayOneShot(clip);
+    }
+
     private Vector3 cameraPos;
 
     private void Awake()
@@ -36,13 +72,14 @@ public class GameManager : MonoBehaviour
     public void ShowVictory()
     {
         victoryPanel.SetActive(true);
-
+        PlaySfx(victorySound);
     }
 
     //패배
     public void ShowDefeat()
     {
         defeatPanel.SetActive(true);
+        PlaySfx(defeatSound);
     }
 
     //재도전

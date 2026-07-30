@@ -19,6 +19,9 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] Animator animator;
 
+    [SerializeField] AudioClip attackSound;
+    [SerializeField] AudioClip dashSound;
+
 
 
 
@@ -111,6 +114,8 @@ public class PlayerController : MonoBehaviour
 
         animator.SetTrigger("Dash");
 
+        GameManager.Instance.PlaySfx(dashSound);
+
         playerCollider.isTrigger = true;
 
         rb.linearVelocity = (lastLookDirection * dashSpeed);
@@ -137,6 +142,8 @@ public class PlayerController : MonoBehaviour
         isAttacking = true;
 
         animator.SetTrigger("Attack");
+
+        GameManager.Instance.PlaySfx(attackSound);
 
         attackHitbox.SetActive(true);
 

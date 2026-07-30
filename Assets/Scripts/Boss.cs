@@ -32,8 +32,10 @@ public class Boss : MonoBehaviour
     [SerializeField] SpriteRenderer bossSprite;
 
     [SerializeField] Animator animator;
-    
 
+    [SerializeField] AudioClip hitSound;
+    [SerializeField] AudioClip deathSound;
+    [SerializeField] AudioClip parrySound;
 
 
 
@@ -172,6 +174,8 @@ public class Boss : MonoBehaviour
         spinHitbox.SetActive(false);
         jumpHitbox.SetActive(false);
         jumpWarningCircle.SetActive(false);
+
+        GameManager.Instance.PlayBgm(bossData.phase1Bgm);
 
         patternLoopRoutine = StartCoroutine(PatternLoop());
 
@@ -565,6 +569,8 @@ public class Boss : MonoBehaviour
 
         yield return new WaitForSeconds(GetDelay(bossData.phaseTransTime));
 
+        GameManager.Instance.PlayBgm(bossData.phase2Bgm);
+
         currentPhase = 2;
 
         isInvincible = false;
@@ -620,6 +626,8 @@ public class Boss : MonoBehaviour
 
         Instantiate(parryEffectPrefab, transform.position, Quaternion.identity);
 
+        GameManager.Instance.PlaySfx(parrySound);
+
         yield return new WaitForSeconds(bossData.vulnerableDuration);
 
         Debug.Log("보스 패리 상태 종료");
@@ -653,6 +661,9 @@ public class Boss : MonoBehaviour
         GameManager.Instance.HitStop(hitStopDuration);
         GameManager.Instance.ShakeCamera(hitStopDuration);
 
+        GameManager.Instance.PlaySfx(hitSound);
+
+
         Debug.Log("보스 HP: " + currentHp + "/" + bossData.maxHp);
 
         if (currentHp <= 0)
@@ -680,6 +691,8 @@ public class Boss : MonoBehaviour
         Debug.Log("보스 토벌");
 
         animator.SetTrigger("Death");
+
+        GameManager.Instance.PlaySfx(deathSound);
 
         StopAllCoroutines();
 

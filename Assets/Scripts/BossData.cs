@@ -5,6 +5,10 @@ using UnityEngine;
 
 public class BossData : ScriptableObject
 {
+
+    public AudioClip phase1Bgm;
+    public AudioClip phase2Bgm;
+
     //기본수치
     public float maxHp = 100f;
     public float patternDelay = 1f;
