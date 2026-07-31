@@ -1,6 +1,7 @@
-using System.Linq.Expressions;
 using System.Collections;
+using System.Linq.Expressions;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 
@@ -9,6 +10,9 @@ public class GameManager : MonoBehaviour
 {
 
     public static GameManager Instance;
+
+    [SerializeField] PlayerController player;
+    [SerializeField] Boss boss;
 
     [SerializeField] GameObject victoryPanel;
     [SerializeField] GameObject defeatPanel;
@@ -24,6 +28,8 @@ public class GameManager : MonoBehaviour
 
     [Header("BackgroundBgm")]
     [SerializeField] AudioSource bgmSource;
+
+    [SerializeField] CanvasGroup battleUiGroup;
 
 
 
@@ -71,15 +77,24 @@ public class GameManager : MonoBehaviour
     //½Â¸®
     public void ShowVictory()
     {
+        Debug.Log("½Â¸®Ã³¸® ½ÇÇàµÊ");
+        bgmSource.Stop();
+        battleUiGroup.alpha = 0f;
         victoryPanel.SetActive(true);
         PlaySfx(victorySound);
+
+        player.SetControllable(false);
     }
 
     //ÆÐ¹è
     public void ShowDefeat()
     {
+        bgmSource.Stop();
+        battleUiGroup.alpha = 0f;
         defeatPanel.SetActive(true);
         PlaySfx(defeatSound);
+
+        boss.StopBattle();
     }
 
     //ÀçµµÀü
@@ -141,6 +156,14 @@ public class GameManager : MonoBehaviour
         }
 
         mainCamera.transform.position = cameraPos;
+    }
+
+    void Update()
+    {
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            Application.Quit();
+        }
     }
 
 

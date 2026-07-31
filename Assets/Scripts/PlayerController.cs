@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using UnityEngine.InputSystem;
+using Unity.VisualScripting;
 
 public class PlayerController : MonoBehaviour
 {
@@ -38,6 +39,15 @@ public class PlayerController : MonoBehaviour
 
     private bool canAttack = true;
     private bool isAttacking = false;
+    private bool canControl = true;
+    
+
+
+    public void SetControllable(bool value)
+    {
+        canControl = value;
+    }
+    
 
     void Start()
     {
@@ -48,6 +58,12 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+
+        if (!canControl)
+        {
+            return;
+        }
+
         float x = 0f;
         float y = 0f;
 

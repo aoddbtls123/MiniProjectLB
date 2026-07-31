@@ -13,6 +13,7 @@ public class Boss : MonoBehaviour
     [SerializeField] GameObject attackHitbox;
     [SerializeField] GameObject dashHitbox;
     [SerializeField] GameObject spinHitbox;
+    [SerializeField] GameObject spinWarningCircle;
     [SerializeField] GameObject jumpHitbox;
     [SerializeField] GameObject jumpWarningCircle;
     [SerializeField] GameObject parryEffectPrefab;
@@ -29,6 +30,8 @@ public class Boss : MonoBehaviour
 
     [SerializeField] float hitStopDuration = 0.05f;
 
+    [SerializeField] float parryShakeDuration = 0.15f;
+
     [SerializeField] SpriteRenderer bossSprite;
 
     [SerializeField] Animator animator;
@@ -36,6 +39,7 @@ public class Boss : MonoBehaviour
     [SerializeField] AudioClip hitSound;
     [SerializeField] AudioClip deathSound;
     [SerializeField] AudioClip parrySound;
+    [SerializeField] AudioClip attackSound;
 
 
 
@@ -159,6 +163,23 @@ public class Boss : MonoBehaviour
 
 
 
+    public void StartBattle()
+    {
+        patternLoopRoutine = StartCoroutine(PatternLoop());
+    }
+
+    public void StopBattle()
+    {
+        StopAllCoroutines();
+
+        attackHitbox.SetActive(false);
+        dashHitbox.SetActive(false);
+        spinHitbox.SetActive(false);
+        jumpHitbox.SetActive(false);
+        jumpWarningCircle.SetActive(false);
+        spinWarningCircle.SetActive(false);
+    }
+
 
 
 
@@ -174,10 +195,11 @@ public class Boss : MonoBehaviour
         spinHitbox.SetActive(false);
         jumpHitbox.SetActive(false);
         jumpWarningCircle.SetActive(false);
+        spinWarningCircle.SetActive(false);
 
         GameManager.Instance.PlayBgm(bossData.phase1Bgm);
 
-        patternLoopRoutine = StartCoroutine(PatternLoop());
+        
 
 
 
@@ -276,7 +298,10 @@ public class Boss : MonoBehaviour
         yield return new WaitForSeconds(0.3f);
 
         Debug.Log("보스 기본 공격");
-        
+
+        GameManager.Instance.PlaySfx(attackSound);
+
+
         attackHitbox.SetActive(true);
 
         yield return new WaitForSeconds(GetDelay(bossData.basicAttackActiveTime));
@@ -339,6 +364,9 @@ public class Boss : MonoBehaviour
         dashHitbox.transform.localScale = new Vector3(bossData.dashHitboxScale.x, bossData.dashHitboxScale.y, 1f); 
 
         dashHitbox.transform.position = transform.position;
+       
+        GameManager.Instance.PlaySfx(attackSound);
+
 
         dashHitbox.SetActive(true);
 
@@ -423,6 +451,9 @@ public class Boss : MonoBehaviour
 
             dashHitbox.transform.position = transform.position;
 
+            GameManager.Instance.PlaySfx(attackSound);
+
+
             dashHitbox.SetActive(true);
 
             Physics2D.IgnoreCollision(bossBodyCollider, playerBodyCollider, true);
@@ -458,8 +489,13 @@ public class Boss : MonoBehaviour
     {
         Debug.Log("보스 회전 베기 예고");
 
+        spinWarningCircle.transform.position = transform.position;
+        spinWarningCircle.transform.localScale = new Vector3(bossData.spinRange * 2f, bossData.spinRange * 2f, 1f);
+        spinWarningCircle.SetActive(true);
 
         yield return new WaitForSeconds(GetDelay(bossData.spinWaitTime));
+
+        spinWarningCircle.SetActive(false);
 
         animator.SetTrigger("Attack");
 
@@ -469,6 +505,9 @@ public class Boss : MonoBehaviour
 
         spinHitbox.transform.localScale = new Vector3(bossData.spinRange * 2f, bossData.spinRange * 2f, 1f);
 
+        GameManager.Instance.PlaySfx(attackSound);
+
+
         spinHitbox.SetActive(true);
 
         Debug.Log("보스 회전 베기");
@@ -476,10 +515,6 @@ public class Boss : MonoBehaviour
         yield return new WaitForSeconds(GetDelay(bossData.spinActiveTime));
 
         spinHitbox.SetActive(false);
-
-
-
-
     }
 
 
@@ -533,6 +568,9 @@ public class Boss : MonoBehaviour
 
         jumpHitbox.transform.localScale = new Vector3(bossData.jumpRadius * 2f, bossData.jumpRadius * 2f, 1f);
 
+        GameManager.Instance.PlaySfx(attackSound);
+
+
         jumpHitbox.SetActive(true);
 
         yield return new WaitForSeconds(GetDelay(bossData.jumpActiveTime));
@@ -564,6 +602,7 @@ public class Boss : MonoBehaviour
         spinHitbox.SetActive(false);
         jumpHitbox.SetActive(false);
         jumpWarningCircle.SetActive(false);
+        spinWarningCircle.SetActive(false);
 
         Debug.Log("보스 2페이즈 전환 시작");
 
@@ -627,6 +666,8 @@ public class Boss : MonoBehaviour
         Instantiate(parryEffectPrefab, transform.position, Quaternion.identity);
 
         GameManager.Instance.PlaySfx(parrySound);
+
+        GameManager.Instance.ShakeCamera(parryShakeDuration);
 
         yield return new WaitForSeconds(bossData.vulnerableDuration);
 
