@@ -1,7 +1,8 @@
-using UnityEngine;
-using System.Collections;
 using DG.Tweening;
+using System.Collections;
 using TMPro;
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class IntroManager : MonoBehaviour
 {
@@ -74,6 +75,14 @@ public class IntroManager : MonoBehaviour
         {
             introText.text = introText.text + c;
             yield return new WaitForSeconds(typingSpeed);
+        }
+    }
+
+    void Update()
+    {
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            Application.Quit();
         }
     }
 }

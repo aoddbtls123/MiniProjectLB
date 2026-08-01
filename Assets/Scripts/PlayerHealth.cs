@@ -17,8 +17,7 @@ public class PlayerHealth : MonoBehaviour
         return currentHp / maxHp;
     }
 
-
-    void Start()
+    void Awake()
     {
         currentHp = maxHp;
         playerController = GetComponent<PlayerController>();

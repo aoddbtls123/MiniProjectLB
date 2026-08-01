@@ -1,5 +1,6 @@
-using UnityEngine;
+using DG.Tweening;
 using System.Collections;
+using UnityEngine;
 
 
 public class Boss : MonoBehaviour
@@ -17,6 +18,10 @@ public class Boss : MonoBehaviour
     [SerializeField] GameObject jumpHitbox;
     [SerializeField] GameObject jumpWarningCircle;
     [SerializeField] GameObject parryEffectPrefab;
+
+    [SerializeField] GameObject phase2Aura;
+    [SerializeField] SpriteRenderer phase2AuraSprite;
+    [SerializeField] float phase2AuraFadeDuration = 1f;
 
 
     [SerializeField] float farDistancePoint = 5f;
@@ -181,13 +186,16 @@ public class Boss : MonoBehaviour
     }
 
 
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        currentHp = bossData.maxHp;
+    }
 
 
 
     void Start()
     {
-        currentHp = bossData.maxHp;
-        rb = GetComponent<Rigidbody2D>();
         player = GameObject.FindGameObjectWithTag("Player").transform;
 
         attackHitbox.SetActive(false);
@@ -197,11 +205,10 @@ public class Boss : MonoBehaviour
         jumpWarningCircle.SetActive(false);
         spinWarningCircle.SetActive(false);
 
-        GameManager.Instance.PlayBgm(bossData.phase1Bgm);
-
-        
-
-
+        phase2Aura.SetActive(false);
+        Color auraColor = phase2AuraSprite.color;
+        auraColor.a = 0f;
+        phase2AuraSprite.color = auraColor;
 
     }
 
@@ -611,6 +618,9 @@ public class Boss : MonoBehaviour
         GameManager.Instance.PlayBgm(bossData.phase2Bgm);
 
         currentPhase = 2;
+
+        phase2Aura.SetActive(true);
+        phase2AuraSprite.DOFade(1f, phase2AuraFadeDuration);
 
         isInvincible = false;
 

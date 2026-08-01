@@ -77,7 +77,6 @@ public class GameManager : MonoBehaviour
     //铰府
     public void ShowVictory()
     {
-        Debug.Log("铰府贸府 角青凳");
         bgmSource.Stop();
         battleUiGroup.alpha = 0f;
         victoryPanel.SetActive(true);

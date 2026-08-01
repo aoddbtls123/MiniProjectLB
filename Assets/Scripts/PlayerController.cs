@@ -40,19 +40,29 @@ public class PlayerController : MonoBehaviour
     private bool canAttack = true;
     private bool isAttacking = false;
     private bool canControl = true;
-    
+
 
 
     public void SetControllable(bool value)
     {
         canControl = value;
-    }
-    
 
-    void Start()
+        if (!canControl)
+        {
+            moveDirection = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
+        }
+    }
+
+
+    void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         playerCollider = GetComponent<BoxCollider2D>();
+    }
+
+    void Start()
+    {
         attackHitbox.SetActive(false);
     }
 
