@@ -1,6 +1,7 @@
-using System.Linq.Expressions;
 using System.Collections;
+using System.Linq.Expressions;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 
@@ -10,11 +11,52 @@ public class GameManager : MonoBehaviour
 
     public static GameManager Instance;
 
+    [SerializeField] PlayerController player;
+    [SerializeField] Boss boss;
+
     [SerializeField] GameObject victoryPanel;
     [SerializeField] GameObject defeatPanel;
 
     [SerializeField] Camera mainCamera;
     [SerializeField] float shakePower = 0.2f;
+
+
+    [Header("Sound")]
+    [SerializeField] AudioSource sfxSource;
+    [SerializeField] AudioClip victorySound;
+    [SerializeField] AudioClip defeatSound;
+
+    [Header("BackgroundBgm")]
+    [SerializeField] AudioSource bgmSource;
+
+    [SerializeField] CanvasGroup battleUiGroup;
+
+
+
+    public void PlayBgm(AudioClip clip)
+    {
+        if (clip == null)
+        {
+            return;
+        }
+        if (bgmSource.clip == clip)
+        {
+            return;
+        }
+
+        bgmSource.clip = clip;
+        bgmSource.Play();
+    }
+
+
+    public void PlaySfx(AudioClip clip)
+    {
+        if (clip == null)
+        {
+            return;
+        }
+        sfxSource.PlayOneShot(clip);
+    }
 
     private Vector3 cameraPos;
 
@@ -35,25 +77,38 @@ public class GameManager : MonoBehaviour
     //승리
     public void ShowVictory()
     {
+        bgmSource.Stop();
+        battleUiGroup.alpha = 0f;
         victoryPanel.SetActive(true);
+        PlaySfx(victorySound);
 
+        player.SetControllable(false);
     }
 
     //패배
     public void ShowDefeat()
     {
+        bgmSource.Stop();
+        battleUiGroup.alpha = 0f;
         defeatPanel.SetActive(true);
+        PlaySfx(defeatSound);
+
+        boss.StopBattle();
     }
 
     //재도전
     public void Retry()
     {
+        Time.timeScale = 1f;
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     //타이틀로
     public void GotoTitle()
     {
+        Time.timeScale = 1f;
+
         SceneManager.LoadScene("Title");
     }
 
@@ -100,6 +155,14 @@ public class GameManager : MonoBehaviour
         }
 
         mainCamera.transform.position = cameraPos;
+    }
+
+    void Update()
+    {
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            Application.Quit();
+        }
     }
 
 

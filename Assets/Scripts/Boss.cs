@@ -1,5 +1,6 @@
-using UnityEngine;
+using DG.Tweening;
 using System.Collections;
+using UnityEngine;
 
 
 public class Boss : MonoBehaviour
@@ -13,8 +14,14 @@ public class Boss : MonoBehaviour
     [SerializeField] GameObject attackHitbox;
     [SerializeField] GameObject dashHitbox;
     [SerializeField] GameObject spinHitbox;
+    [SerializeField] GameObject spinWarningCircle;
     [SerializeField] GameObject jumpHitbox;
     [SerializeField] GameObject jumpWarningCircle;
+    [SerializeField] GameObject parryEffectPrefab;
+
+    [SerializeField] GameObject phase2Aura;
+    [SerializeField] SpriteRenderer phase2AuraSprite;
+    [SerializeField] float phase2AuraFadeDuration = 1f;
 
 
     [SerializeField] float farDistancePoint = 5f;
@@ -28,6 +35,16 @@ public class Boss : MonoBehaviour
 
     [SerializeField] float hitStopDuration = 0.05f;
 
+    [SerializeField] float parryShakeDuration = 0.15f;
+
+    [SerializeField] SpriteRenderer bossSprite;
+
+    [SerializeField] Animator animator;
+
+    [SerializeField] AudioClip hitSound;
+    [SerializeField] AudioClip deathSound;
+    [SerializeField] AudioClip parrySound;
+    [SerializeField] AudioClip attackSound;
 
 
 
@@ -53,6 +70,7 @@ public class Boss : MonoBehaviour
     private bool wasParried = false;
 
     private Coroutine patternLoopRoutine;
+    private Coroutine currentPatternRoutine;
 
     public float GetHpRatio()
     {
@@ -135,15 +153,49 @@ public class Boss : MonoBehaviour
     }
 
 
+    private void FaceDeriction(Vector2 dir)
+    {
+        if (dir.x < 0f)
+        {
+            bossSprite.flipX = true;
+        }
+        else if (dir.x > 0f)
+        {
+            bossSprite.flipX = false;
+        }
+
+    }
 
 
+
+    public void StartBattle()
+    {
+        patternLoopRoutine = StartCoroutine(PatternLoop());
+    }
+
+    public void StopBattle()
+    {
+        StopAllCoroutines();
+
+        attackHitbox.SetActive(false);
+        dashHitbox.SetActive(false);
+        spinHitbox.SetActive(false);
+        jumpHitbox.SetActive(false);
+        jumpWarningCircle.SetActive(false);
+        spinWarningCircle.SetActive(false);
+    }
+
+
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        currentHp = bossData.maxHp;
+    }
 
 
 
     void Start()
     {
-        currentHp = bossData.maxHp;
-        rb = GetComponent<Rigidbody2D>();
         player = GameObject.FindGameObjectWithTag("Player").transform;
 
         attackHitbox.SetActive(false);
@@ -151,10 +203,12 @@ public class Boss : MonoBehaviour
         spinHitbox.SetActive(false);
         jumpHitbox.SetActive(false);
         jumpWarningCircle.SetActive(false);
+        spinWarningCircle.SetActive(false);
 
-        patternLoopRoutine = StartCoroutine(PatternLoop());
-
-
+        phase2Aura.SetActive(false);
+        Color auraColor = phase2AuraSprite.color;
+        auraColor.a = 0f;
+        phase2AuraSprite.color = auraColor;
 
     }
 
@@ -172,7 +226,9 @@ public class Boss : MonoBehaviour
             {
                 pendingHiddenPhase = false;
 
-                yield return StartCoroutine(HiddenPhaseRoutine());
+
+                currentPatternRoutine = StartCoroutine(HiddenPhaseRoutine());
+                yield return currentPatternRoutine;
 
                 continue;
             }
@@ -185,23 +241,29 @@ public class Boss : MonoBehaviour
 
             {
                 case PatternType.Basic:
-                    yield return StartCoroutine(BasicAttack());
+
+                    currentPatternRoutine = StartCoroutine(BasicAttack());
+                    yield return currentPatternRoutine;
                     break;
 
                 case PatternType.Dash:
-                    yield return StartCoroutine(DashAttack());
+                    currentPatternRoutine = StartCoroutine(DashAttack());
+                    yield return currentPatternRoutine;
                     break;
 
                 case PatternType.Spin:
-                    yield return StartCoroutine(SpinAttack());
+                    currentPatternRoutine = StartCoroutine(SpinAttack());
+                    yield return currentPatternRoutine;
                     break;
 
                 case PatternType.Jump:
-                    yield return StartCoroutine(JumpAttack());
+                    currentPatternRoutine = StartCoroutine(JumpAttack());
+                    yield return currentPatternRoutine;
                     break;
 
                 case PatternType.MultiDash:
-                    yield return StartCoroutine(MultiDashAttack());
+                    currentPatternRoutine = StartCoroutine(MultiDashAttack());
+                    yield return currentPatternRoutine;
                     break;
 
 
@@ -212,27 +274,41 @@ public class Boss : MonoBehaviour
 
     IEnumerator BasicAttack() //Boss's basic attack coroutine
     {
+
+        animator.SetBool("IsRunning", true);
+
         while (Vector2.Distance(transform.position, player.position) > (bossData.attackRange))
         {
             Vector2 moveDir = (player.position - transform.position).normalized;
 
+            FaceDeriction(moveDir);
+
             rb.MovePosition(rb.position + moveDir* bossData.moveSpeed*Time.deltaTime);
 
-            yield return null;
+            yield return null; 
         }
+
+        animator.SetBool("IsRunning", false);
 
         yield return new WaitForSeconds(GetDelay(bossData.basicAttackWaitTime));
 
         Vector2 dir = (player.position - transform.position).normalized;
 
-        transform.right = dir;
+        FaceDeriction(dir);
 
         attackHitbox.transform.position = (Vector2)transform.position + (dir * bossData.attackRange);
 
         attackHitbox.transform.right = dir;
 
+        animator.SetTrigger("Attack");
+
+        yield return new WaitForSeconds(0.3f);
+
         Debug.Log("보스 기본 공격");
-        
+
+        GameManager.Instance.PlaySfx(attackSound);
+
+
         attackHitbox.SetActive(true);
 
         yield return new WaitForSeconds(GetDelay(bossData.basicAttackActiveTime));
@@ -248,17 +324,21 @@ public class Boss : MonoBehaviour
 
         Vector2 dashDir = (player.position - transform.position).normalized;
 
-        transform.right = dashDir;
+        FaceDeriction(dashDir);
 
         yield return new WaitForSeconds(GetDelay(bossData.dashAttackWaitTime));
 
         dashDir = (player.position - transform.position).normalized;
 
-        transform.right = dashDir;
+        FaceDeriction(dashDir);
 
         Debug.Log("패리 가능 구간");
 
+        animator.SetTrigger("Attack");
+
         isParryable = true;
+
+        
 
         float readyElapsed = 0f;
 
@@ -291,6 +371,9 @@ public class Boss : MonoBehaviour
         dashHitbox.transform.localScale = new Vector3(bossData.dashHitboxScale.x, bossData.dashHitboxScale.y, 1f); 
 
         dashHitbox.transform.position = transform.position;
+       
+        GameManager.Instance.PlaySfx(attackSound);
+
 
         dashHitbox.SetActive(true);
 
@@ -322,7 +405,7 @@ public class Boss : MonoBehaviour
     {
         Vector2 dashDir = (player.position - transform.position).normalized;
 
-        transform.right = dashDir;
+        FaceDeriction(dashDir);
 
         yield return new WaitForSeconds(GetDelay(bossData.dashAttackWaitTime));
 
@@ -331,17 +414,21 @@ public class Boss : MonoBehaviour
         {
             dashDir = (player.position - transform.position).normalized;
 
-            transform.right = dashDir;
+            FaceDeriction(dashDir);
 
             yield return new WaitForSeconds(GetDelay(bossData.dashAttackWaitTime));
 
             dashDir = (player.position - transform.position).normalized;
 
-            transform.right = dashDir;
+            FaceDeriction(dashDir);
 
             Debug.Log("연속 돌진 패링 가능");
 
+            animator.SetTrigger("Attack");
+
             isParryable = true;
+
+            
 
             float readyElapsed = 0f;
 
@@ -370,6 +457,9 @@ public class Boss : MonoBehaviour
             dashHitbox.transform.localScale = new Vector3(bossData.dashHitboxScale.x, bossData.dashHitboxScale.y, 1f);
 
             dashHitbox.transform.position = transform.position;
+
+            GameManager.Instance.PlaySfx(attackSound);
+
 
             dashHitbox.SetActive(true);
 
@@ -406,12 +496,24 @@ public class Boss : MonoBehaviour
     {
         Debug.Log("보스 회전 베기 예고");
 
+        spinWarningCircle.transform.position = transform.position;
+        spinWarningCircle.transform.localScale = new Vector3(bossData.spinRange * 2f, bossData.spinRange * 2f, 1f);
+        spinWarningCircle.SetActive(true);
 
         yield return new WaitForSeconds(GetDelay(bossData.spinWaitTime));
+
+        spinWarningCircle.SetActive(false);
+
+        animator.SetTrigger("Attack");
+
+        yield return new WaitForSeconds(0.3f);
 
         spinHitbox.transform.position = transform.position;
 
         spinHitbox.transform.localScale = new Vector3(bossData.spinRange * 2f, bossData.spinRange * 2f, 1f);
+
+        GameManager.Instance.PlaySfx(attackSound);
+
 
         spinHitbox.SetActive(true);
 
@@ -420,10 +522,6 @@ public class Boss : MonoBehaviour
         yield return new WaitForSeconds(GetDelay(bossData.spinActiveTime));
 
         spinHitbox.SetActive(false);
-
-
-
-
     }
 
 
@@ -451,6 +549,10 @@ public class Boss : MonoBehaviour
 
         jumpWarningCircle.SetActive(false);
 
+        animator.SetTrigger("Jump");
+
+        yield return new WaitForSeconds(0.3f);
+
         float elasped = 0f;
 
         while (elasped < bossData.jumpUpTime)
@@ -463,14 +565,18 @@ public class Boss : MonoBehaviour
 
         rb.MovePosition(endJump);
 
+        animator.SetTrigger("Attack");
 
-
+        yield return new WaitForSeconds(0.3f);
 
         Debug.Log("보스 착지 공격");
 
         jumpHitbox.transform.position = endJump;
 
         jumpHitbox.transform.localScale = new Vector3(bossData.jumpRadius * 2f, bossData.jumpRadius * 2f, 1f);
+
+        GameManager.Instance.PlaySfx(attackSound);
+
 
         jumpHitbox.SetActive(true);
 
@@ -492,17 +598,29 @@ public class Boss : MonoBehaviour
             StopCoroutine(patternLoopRoutine);
         }
 
+        if (currentPatternRoutine != null)
+        {
+            StopCoroutine(currentPatternRoutine);
+            currentPatternRoutine = null;
+        }
+
         attackHitbox.SetActive(false);
         dashHitbox.SetActive(false);
         spinHitbox.SetActive(false);
         jumpHitbox.SetActive(false);
         jumpWarningCircle.SetActive(false);
+        spinWarningCircle.SetActive(false);
 
         Debug.Log("보스 2페이즈 전환 시작");
 
         yield return new WaitForSeconds(GetDelay(bossData.phaseTransTime));
 
+        GameManager.Instance.PlayBgm(bossData.phase2Bgm);
+
         currentPhase = 2;
+
+        phase2Aura.SetActive(true);
+        phase2AuraSprite.DOFade(1f, phase2AuraFadeDuration);
 
         isInvincible = false;
 
@@ -537,8 +655,11 @@ public class Boss : MonoBehaviour
     {
         Debug.Log("숨은 페이즈 분기점 발동");
 
-        yield return StartCoroutine(SpinAttack());
-        yield return StartCoroutine(DashAttack());
+        currentPatternRoutine = StartCoroutine(SpinAttack());
+        yield return currentPatternRoutine;
+
+        currentPatternRoutine = StartCoroutine(DashAttack());
+        yield return currentPatternRoutine;
 
         isDashUnloaked = true;
     }
@@ -551,6 +672,12 @@ public class Boss : MonoBehaviour
         currentState = State.Parried;
 
         dashHitbox.SetActive(false);
+
+        Instantiate(parryEffectPrefab, transform.position, Quaternion.identity);
+
+        GameManager.Instance.PlaySfx(parrySound);
+
+        GameManager.Instance.ShakeCamera(parryShakeDuration);
 
         yield return new WaitForSeconds(bossData.vulnerableDuration);
 
@@ -577,8 +704,16 @@ public class Boss : MonoBehaviour
 
         currentHp = currentHp - damage;
 
+        if(currentHp > 0)
+        {
+            animator.SetTrigger("Hit");
+        }
+
         GameManager.Instance.HitStop(hitStopDuration);
         GameManager.Instance.ShakeCamera(hitStopDuration);
+
+        GameManager.Instance.PlaySfx(hitSound);
+
 
         Debug.Log("보스 HP: " + currentHp + "/" + bossData.maxHp);
 
@@ -594,7 +729,7 @@ public class Boss : MonoBehaviour
             pendingHiddenPhase = true;
         }
 
-        if (currentPhase == 1&& currentHp <= bossData.maxHp *0.5f)
+        else if (currentPhase == 1 && currentHp <= bossData.maxHp * 0.5f)
         {
             StartCoroutine(PhaseTransRoutine());
         }
@@ -605,6 +740,10 @@ public class Boss : MonoBehaviour
         currentState = State.Dead;
 
         Debug.Log("보스 토벌");
+
+        animator.SetTrigger("Death");
+
+        GameManager.Instance.PlaySfx(deathSound);
 
         StopAllCoroutines();
 

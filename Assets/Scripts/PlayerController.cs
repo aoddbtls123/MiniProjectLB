@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using UnityEngine.InputSystem;
+using Unity.VisualScripting;
 
 public class PlayerController : MonoBehaviour
 {
@@ -13,6 +14,15 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float attackActivetime = 1f;
     [SerializeField] float attackCoolDown = 0.5f;
     [SerializeField] GameObject attackHitbox;
+
+    [SerializeField] Transform visualTransform;
+    [SerializeField] SpriteRenderer spriteRenderer;
+
+    [SerializeField] Animator animator;
+
+    [SerializeField] AudioClip attackSound;
+    [SerializeField] AudioClip dashSound;
+
 
 
 
@@ -29,16 +39,41 @@ public class PlayerController : MonoBehaviour
 
     private bool canAttack = true;
     private bool isAttacking = false;
+    private bool canControl = true;
 
-    void Start()
+
+
+    public void SetControllable(bool value)
+    {
+        canControl = value;
+
+        if (!canControl)
+        {
+            moveDirection = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
+        }
+    }
+
+
+    void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         playerCollider = GetComponent<BoxCollider2D>();
+    }
+
+    void Start()
+    {
         attackHitbox.SetActive(false);
     }
 
     void Update()
     {
+
+        if (!canControl)
+        {
+            return;
+        }
+
         float x = 0f;
         float y = 0f;
 
@@ -70,15 +105,30 @@ public class PlayerController : MonoBehaviour
 
         }
 
-        if (Mouse.current.rightButton.wasPressedThisFrame && canDash && !isDashing)
+        animator.SetBool("IsMoving", moveDirection != Vector2.zero);
+
+        visualTransform.rotation = Quaternion.identity;
+
+        if (lastLookDirection.x < 0f)
         {
-            StartCoroutine(Dash());
+            spriteRenderer.flipX = true;
+        }
+        else if (lastLookDirection.x>0f)
+        {
+            spriteRenderer.flipX= false;
         }
 
         if (Mouse.current.leftButton.wasPressedThisFrame && !isDashing && !isAttacking && canAttack)
         {
             StartCoroutine(Attack());
         }
+
+        if (Mouse.current.rightButton.wasPressedThisFrame && canDash && !isDashing)
+        {
+            StartCoroutine(Dash());
+        }
+
+
 
     }
 
@@ -88,9 +138,13 @@ public class PlayerController : MonoBehaviour
         canDash = false;
         isInvincible = true;
 
+        animator.SetTrigger("Dash");
+
+        GameManager.Instance.PlaySfx(dashSound);
+
         playerCollider.isTrigger = true;
 
-        rb.linearVelocity = (moveDirection * dashSpeed);
+        rb.linearVelocity = (lastLookDirection * dashSpeed);
         
         yield return new WaitForSeconds(dashDuration);
         
@@ -112,6 +166,10 @@ public class PlayerController : MonoBehaviour
     {
         canAttack = false;
         isAttacking = true;
+
+        animator.SetTrigger("Attack");
+
+        GameManager.Instance.PlaySfx(attackSound);
 
         attackHitbox.SetActive(true);
 
